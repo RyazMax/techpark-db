@@ -19,8 +19,8 @@ USER postgres
 # Create a PostgreSQL role named ``docker`` with ``docker`` as the password and
 # then create a database `docker` owned by the ``docker`` role.
 RUN /etc/init.d/postgresql start &&\
-    psql --command "CREATE USER $USERNAME WITH SUPERUSER PASSWORD '$PASSWORD';" &&\
-    createdb -O $USERNAME codeloft &&\
+    psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
+    createdb -O docker docker &&\
     /etc/init.d/postgresql stop
 
 # Adjust PostgreSQL configuration so that remote connections to the
@@ -48,9 +48,11 @@ ENV GOPATH /opt/go
 ENV PATH $GOROOT/bin:$GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Копируем исходный код в Docker-контейнер
-WORKDIR $GOPATH/src/github.com/techpark-db
-COPY . $GOPATH/src/github.com/techpark-db
+WORKDIR $GOPATH/src/techpark-db
+COPY . $GOPATH/src/techpark-db
 
+RUN go get -u github.com/gorilla/mux
+RUN go get github.com/lib/pq
 RUN go install .
 EXPOSE 5000
-CMD /etc/init.d/postgresql start && techpark-db $USERNAME $PASSWORD
+CMD /etc/init.d/postgresql start && techpark-db

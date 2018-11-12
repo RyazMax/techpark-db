@@ -56,6 +56,14 @@ func (u *User) GetUserByNick(nickname string, db *database.DB) (exist bool) {
 	return
 }
 
+func (u *User) Update(db *database.DB) error {
+	_, err := db.DataBase.Exec("UPDATE forum_user SET(fullname=$1,about=$2,email=$3);", u.Fullname, u.About, u.Email)
+	if err != nil {
+		log.Println("Update", err)
+	}
+	return err
+}
+
 type UserUpdate struct {
 	About    string `json:"about"`
 	Email    string `json:"email"`

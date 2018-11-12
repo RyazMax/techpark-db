@@ -72,7 +72,50 @@ type ProfileUserHandler struct {
 }
 
 func updateUser(w http.ResponseWriter, r *http.Request, db *database.DB) {
+	vars := mux.Vars(r)
+	name := vars["name"]
+	w.Header().Set("Content-Type", "application/json")
 
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Can not read body", err)
+		return
+	}
+	newUser := &models.User{}
+	err = json.Unmarshal(body, newUser)
+	if err != nil {
+		log.Println("Can not unmarshal json", err)
+		return
+	}
+
+	newUser.Nickname = name
+	users := newUser.GetLike(db)
+	var data []byte
+
+	if len(users) == 0 || (len(users) == 1 && users[0].Nickname != newUser.Nickname) {
+		w.WriteHeader(http.StatusNotFound)
+		msg := models.Message{Message: "Error not found"}
+		data, err = json.Marshal(msg)
+		if err != nil {
+			log.Println(err)
+		}
+	} else if len(users) == 1 {
+		w.WriteHeader(http.StatusOK)
+		newUser.Update(db)
+		data, err = json.Marshal(newUser)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		w.WriteHeader(http.StatusConflict)
+		msg := models.Message{Message: "Error not found"}
+		data, err = json.Marshal(msg)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	w.Write(data)
 }
 
 func getUser(w http.ResponseWriter, r *http.Request, db *database.DB) {

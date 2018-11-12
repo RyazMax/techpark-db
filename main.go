@@ -18,8 +18,9 @@ func main() {
 	db.ConectDB()
 	db.InitDB("database/init.sql")
 	router := mux.NewRouter().PathPrefix("/api").Subrouter()
-	router.Handle("/user/{name}/create", &handlers.CreateUserHandler{&db})
-	router.Handle("/user/{name}/profile", &handlers.ProfileUserHandler{&db})
+	router.Handle("/user/{name}/create", &handlers.CreateUserHandler{DB: &db})
+	router.Handle("/user/{name}/profile", &handlers.ProfileUserHandler{DB: &db})
+	router.Handle("/forum/create", &handlers.CreateForumHandler{DB: &db})
 	log.Println("started server")
 	http.ListenAndServe(":5000", router)
 }

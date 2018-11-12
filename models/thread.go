@@ -1,5 +1,7 @@
 package models
 
+import "techpark-db/database"
+
 type Thread struct {
 	Author  string `json:"author"`
 	Created string `json:"created"`
@@ -9,6 +11,10 @@ type Thread struct {
 	Slug    string `json:"slug"`
 	Title   string `json:"title"`
 	Votes   int    `json:"votes"`
+}
+
+func (t *Thread) Add(db *database.DB) {
+
 }
 
 type ThreadUpdate struct {

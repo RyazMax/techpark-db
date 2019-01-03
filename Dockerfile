@@ -51,8 +51,6 @@ ENV PATH $GOROOT/bin:$GOPATH/bin:/usr/local/go/bin:$PATH
 WORKDIR $GOPATH/src/techpark-db
 COPY . $GOPATH/src/techpark-db
 
-RUN go get -u github.com/gorilla/mux
-RUN go get github.com/lib/pq
 RUN go install .
 EXPOSE 5000
 CMD /etc/init.d/postgresql start && techpark-db

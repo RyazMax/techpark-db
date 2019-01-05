@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS forum_user (
 );
 
 CREATE TABLE IF NOT EXISTS forum (
-    posts BIGSERIAL,
+    posts BIGINT,
     slug text primary key,
     threads INTEGER,
     title text,

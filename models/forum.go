@@ -6,15 +6,15 @@ import (
 )
 
 type Forum struct {
-	Posts   int    `json:"posts"`
+	Posts   int    `json:"posts,ommitempty"`
 	Slug    string `json:"slug"`
-	Threads int    `json:"threads"`
+	Threads int    `json:"threads,ommitempty"`
 	Title   string `json:"title"`
 	User    string `json:"user"`
 }
 
 func (f *Forum) Create(db *database.DB) error {
-	_, err := db.DataBase.Exec("insert into forum(posts,slug,threads,title,forum_user) values ($1,$2,$3,$4,LOWER($5));",
+	_, err := db.DataBase.Exec("insert into forum(posts,slug,threads,title,forum_user) values ($1,$2,$3,$4,$5);",
 		f.Posts, f.Slug, f.Threads, f.Title, f.User)
 	if err != nil {
 		log.Println(err)
@@ -24,7 +24,7 @@ func (f *Forum) Create(db *database.DB) error {
 }
 
 func (f *Forum) GetBySlug(slug string, db *database.DB) (exist bool) {
-	rows, err := db.DataBase.Query("select * from forum where slug=$1;", slug)
+	rows, err := db.DataBase.Query("select * from forum where LOWER(slug)=LOWER($1);", slug)
 	defer rows.Close()
 	if err != nil {
 		log.Println(err)

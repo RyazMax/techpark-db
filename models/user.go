@@ -13,7 +13,7 @@ type User struct {
 }
 
 func (newUser *User) Add(db *database.DB) error {
-	_, err := db.DataBase.Exec("insert into forum_user(email,about,fullname,nickname) values ($1,$2,$3,LOWER($4))		;",
+	_, err := db.DataBase.Exec("insert into forum_user(email,about,fullname,nickname) values ($1,$2,$3,$4)		;",
 		newUser.Email, newUser.About, newUser.Fullname, newUser.Nickname)
 	if err != nil {
 
@@ -23,7 +23,7 @@ func (newUser *User) Add(db *database.DB) error {
 }
 
 func (u *User) GetLike(db *database.DB) Users {
-	rows, err := db.DataBase.Query("select * from forum_user where email=$1 or nickname=LOWER($2);",
+	rows, err := db.DataBase.Query("select * from forum_user where LOWER(email)=LOWER($1) or LOWER(nickname)=LOWER($2);",
 		u.Email, u.Nickname)
 	defer rows.Close()
 	users := make(Users, 0, 2)
@@ -41,7 +41,7 @@ func (u *User) GetLike(db *database.DB) Users {
 }
 
 func (u *User) GetUserByNick(nickname string, db *database.DB) (exist bool) {
-	rows, err := db.DataBase.Query("select * from forum_user where nickname=LOWER($1);", nickname)
+	rows, err := db.DataBase.Query("select * from forum_user where LOWER(nickname)=LOWER($1);", nickname)
 	defer rows.Close()
 	if err != nil {
 		log.Fatal(err)
@@ -57,7 +57,18 @@ func (u *User) GetUserByNick(nickname string, db *database.DB) (exist bool) {
 }
 
 func (u *User) Update(db *database.DB) error {
-	_, err := db.DataBase.Exec("UPDATE forum_user SET(fullname=$1,about=$2,email=$3);", u.Fullname, u.About, u.Email)
+
+	var err error
+	if u.About != "" {
+		_, err = db.DataBase.Exec("UPDATE forum_user SET about = $1 WHERE LOWER(nickname)=LOWER($2)", u.About, u.Nickname)
+	}
+	if u.Fullname != "" {
+		_, err = db.DataBase.Exec("UPDATE forum_user SET fullname = $1 WHERE LOWER(nickname)=LOWER($2)", u.Fullname, u.Nickname)
+	}
+	if u.Email != "" {
+		_, err = db.DataBase.Exec("UPDATE forum_user SET email = $1 WHERE LOWER(nickname)=LOWER($2)", u.Email, u.Nickname)
+	}
+	//_, err := db.DataBase.Exec("UPDATE forum_user SET fullname = $1, about = $2, email = $3 WHERE LOWER(nickname)=LOWER($4);", u.Fullname, u.About, u.Email, u.Nickname)
 	if err != nil {
 		log.Println("Update", err)
 	}

@@ -5,22 +5,19 @@ package main
 // ./tech-db-forum func -u http://localhost:5000/api -r report.html
 
 import (
-	"log"
-	"net/http"
 	"techpark-db/database"
-	"techpark-db/handlers"
+	"techpark-db/routers"
 
-	"github.com/gorilla/mux"
+	"github.com/astaxie/beego"
 )
 
 func main() {
+
 	var db database.DB
 	db.ConectDB()
 	db.InitDB("database/init.sql")
-	router := mux.NewRouter().PathPrefix("/api").Subrouter()
-	router.Handle("/user/{name}/create", &handlers.CreateUserHandler{DB: &db})
-	router.Handle("/user/{name}/profile", &handlers.ProfileUserHandler{DB: &db})
-	router.Handle("/forum/create", &handlers.CreateForumHandler{DB: &db})
-	log.Println("started server")
-	http.ListenAndServe(":5000", router)
+	defer db.DataBase.Close()
+
+	routers.InitRouter(&db)
+	beego.Run(":5000")
 }

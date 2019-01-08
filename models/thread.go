@@ -62,7 +62,7 @@ func (t *Thread) GetById(id int, db *database.DB) bool {
 }
 
 func (t *Thread) GetBySlug(slug string, db *database.DB) bool {
-	err := db.DataBase.QueryRow("SELECT * FROM THREAD WHERE LOWER(slug)=LOWER($1)", slug).
+	err := db.DataBase.QueryRow("SELECT * FROM THREAD WHERE slug=$1", slug).
 		Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 	if err != nil {
 		return false
@@ -183,7 +183,7 @@ func GetThreadsSorted(slug string, limit int, since string, desc bool, db *datab
 	}*/
 
 	// Исправлена вложенность
-	subQuery := "SELECT * FROM THREAD WHERE LOWER(FORUM) = LOWER($1)"
+	subQuery := "SELECT * FROM THREAD WHERE FORUM = $1"
 	if since != "" {
 		subQuery += " AND created "
 		if desc {

@@ -95,10 +95,22 @@ $$ LANGUAGE PLPGSQL;
 
 DROP TRIGGER IF EXISTS incVotesOnInsertVote on vote;
 
+CREATE OR REPLACE FUNCTION incVotesUpd() RETURNS TRIGGER AS
+$$BEGIN
+    UPDATE thread SET votes = votes + NEW.voice - OLD.voice WHERE id = NEW.thread;
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
 CREATE TRIGGER incVotesOnInsertVote 
 AFTER INSERT ON vote
 FOR EACH ROW EXECUTE PROCEDURE incVotes();
 
-DROP TRIGGER IF EXISTS incVotesOnInsertVote on vote;
+DROP TRIGGER IF EXISTS incVotesOnUpdateVote on vote;
+
+CREATE TRIGGER incVotesOnUpdateVote 
+AFTER UPDATE ON vote
+FOR EACH ROW EXECUTE PROCEDURE incVotesUpd();
+
 
 CREATE INDEX idx_forum_user_nickname_email ON forum_user(nickname, email);

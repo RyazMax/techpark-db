@@ -57,14 +57,6 @@ func (c *ThreadVoteController) Post() {
 
 	oldVote := models.Vote{}
 	exist = oldVote.GetByNickAndID(vote.Nickname, thread.ID, c.DB)
-	delta := 0
-	if exist {
-		delta = vote.Voice - oldVote.Voice
-	} else {
-		delta = vote.Voice
-	}
-	thread.Votes += delta
-	thread.Update(c.DB)
 
 	if exist {
 		vote.Update(c.DB)

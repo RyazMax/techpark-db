@@ -143,21 +143,25 @@ CREATE TRIGGER incVotesOnUpdateVote
 AFTER UPDATE ON vote
 FOR EACH ROW EXECUTE PROCEDURE incVotesUpd();
 
+DROP INDEX IF EXISTS forum_user_nickname_idx;
 DROP INDEX IF EXISTS forum_user_nickname_email_idx;
 DROP INDEX IF EXISTS vote_username_thread_idx;
 DROP INDEX IF EXISTS thread_forum_created_idx;
 DROP INDEX IF EXISTS thread_slug_idx;
 
-DROP INDEX IF EXISTS posts_thread_id_idx;
+DROP INDEX IF EXISTS posts_thread_idx;
+DROP INDEX IF EXISTS posts_thread_created_idx;
 DROP INDEX IF EXISTS post_mpath_idx;
 DROP INDEX IF EXISTS post_mpath_desc_idx;
 
-CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(nickname, email);
+CREATE INDEX IF NOT EXISTS forum_user_nickname_idx ON forum_user(LOWER(nickname));
+CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(LOWER(nickname), LOWER(email));
 
-CREATE INDEX IF NOT EXISTS thread_slug_idx on thread (slug);
-CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (forum, created);
-CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (nickname, thread);
+CREATE INDEX IF NOT EXISTS thread_slug_idx on thread (LOWER(slug));
+CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (LOWER(forum), created);
+CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (LOWER(nickname), thread);
 
-CREATE INDEX IF NOT EXISTS posts_thread_id_idx ON post(thread, created);
+CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread);
+CREATE INDEX IF NOT EXISTS posts_thread_created_idx ON post(thread, created);
 CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));
 CREATE INDEX IF NOT EXISTS post_mpath_desc_id ON post((mpath[1]) desc, (mpath[2:]))

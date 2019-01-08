@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS vote CASCADE;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE IF NOT EXISTS forum_user (
-    email text unique,
+    email CITEXT unique,
     about text,
     fullname text,
     nickname CITEXT COLLATE "ucs_basic" primary key 
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS forum_user (
 
 CREATE TABLE IF NOT EXISTS forum (
     posts BIGINT,
-    slug text primary key,
+    slug CITEXT primary key,
     threads INTEGER,
     title text,
     forum_user CITEXT,
@@ -26,11 +26,11 @@ CREATE TABLE IF NOT EXISTS forum (
 CREATE TABLE IF NOT EXISTS thread (
     author CITEXT,
     created TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    forum text,
+    forum CITEXT,
     id BIGSERIAL primary key,
     isEdited BOOL DEFAULT false, 
     Msg text,
-    slug text DEFAULT NULL,
+    slug CITEXT DEFAULT NULL,
     title text,
     votes BIGINT DEFAULT 0,
     
@@ -57,7 +57,7 @@ FOR EACH ROW EXECUTE PROCEDURE incThreads();
 CREATE TABLE IF NOT EXISTS post (
     author CITEXT,
     created TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    forum text,
+    forum CITEXT,
     id BIGSERIAL primary key,
     isEdited BOOL DEFAULT false, 
     Msg text,
@@ -154,14 +154,14 @@ DROP INDEX IF EXISTS posts_thread_created_idx;
 DROP INDEX IF EXISTS post_mpath_idx;
 DROP INDEX IF EXISTS post_mpath_desc_idx;
 
-CREATE INDEX IF NOT EXISTS forum_user_nickname_idx ON forum_user(LOWER(nickname));
-CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(LOWER(nickname), LOWER(email));
+CREATE INDEX IF NOT EXISTS forum_user_nickname_idx ON forum_user(nickname);
+CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(nickname, email);
 
-CREATE INDEX IF NOT EXISTS thread_slug_idx on thread (LOWER(slug));
-CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (LOWER(forum), created);
-CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (LOWER(nickname), thread);
+CREATE INDEX IF NOT EXISTS thread_slug_idx on thread (slug);
+CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (forum, created);
+CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (nickname, thread);
 
 CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread);
 CREATE INDEX IF NOT EXISTS posts_thread_created_idx ON post(thread, created);
-CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));
-CREATE INDEX IF NOT EXISTS post_mpath_desc_id ON post((mpath[1]) desc, (mpath[2:]))
+--CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));
+--CREATE INDEX IF NOT EXISTS post_mpath_desc_id ON post((mpath[1]) desc, (mpath[2:]))

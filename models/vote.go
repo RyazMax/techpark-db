@@ -13,7 +13,7 @@ type Vote struct {
 }
 
 func (v *Vote) GetByNickAndID(nick string, id int, db *database.DB) bool {
-	err := db.DataBase.QueryRow("SELECT * FROM vote WHERE LOWER(nickname)=LOWER($1) AND thread=$2;", nick, id).
+	err := db.DataBase.QueryRow("SELECT * FROM vote WHERE nickname = $1 AND thread=$2;", nick, id).
 		Scan(&v.Nickname, &v.Voice, &v.Thread)
 	if err != nil {
 		return false
@@ -29,7 +29,7 @@ func (v *Vote) Add(db *database.DB) {
 }
 
 func (v *Vote) Update(db *database.DB) {
-	_, err := db.DataBase.Exec("UPDATE vote SET voice = $1 WHERE LOWER(nickname)=LOWER($2) AND thread=$3",
+	_, err := db.DataBase.Exec("UPDATE vote SET voice = $1 WHERE nickname = $2 AND thread=$3",
 		v.Voice, v.Nickname, v.Thread)
 	if err != nil {
 		beego.Warn(err)

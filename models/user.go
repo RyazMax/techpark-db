@@ -33,7 +33,7 @@ func (newUser *User) Add(db *database.DB) error {
 }
 
 func (u *User) GetLike(db *database.DB) Users {
-	rows, err := db.DataBase.Query("select * from forum_user where LOWER(email)=LOWER($1) or LOWER(nickname)=LOWER($2);",
+	rows, err := db.DataBase.Query("select * from forum_user where nickname = $2 or email = $1;",
 		u.Email, u.Nickname)
 	defer rows.Close()
 	users := make(Users, 0, 2)
@@ -51,7 +51,7 @@ func (u *User) GetLike(db *database.DB) Users {
 }
 
 func (u *User) GetUserByNick(nickname string, db *database.DB) (exist bool) {
-	rows, err := db.DataBase.Query("select * from forum_user where LOWER(nickname)=LOWER($1);", nickname)
+	rows, err := db.DataBase.Query("select * from forum_user where nickname = $1;", nickname)
 	defer rows.Close()
 	if err != nil {
 		log.Fatal(err)
@@ -70,13 +70,13 @@ func (u *User) Update(db *database.DB) error {
 
 	var err error
 	if u.About != "" {
-		_, err = db.DataBase.Exec("UPDATE forum_user SET about = $1 WHERE LOWER(nickname)=LOWER($2)", u.About, u.Nickname)
+		_, err = db.DataBase.Exec("UPDATE forum_user SET about = $1 WHERE nickname = $2", u.About, u.Nickname)
 	}
 	if u.Fullname != "" {
-		_, err = db.DataBase.Exec("UPDATE forum_user SET fullname = $1 WHERE LOWER(nickname)=LOWER($2)", u.Fullname, u.Nickname)
+		_, err = db.DataBase.Exec("UPDATE forum_user SET fullname = $1 WHERE nickname =  $2", u.Fullname, u.Nickname)
 	}
 	if u.Email != "" {
-		_, err = db.DataBase.Exec("UPDATE forum_user SET email = $1 WHERE LOWER(nickname)=LOWER($2)", u.Email, u.Nickname)
+		_, err = db.DataBase.Exec("UPDATE forum_user SET email = $1 WHERE nickname = $2", u.Email, u.Nickname)
 	}
 	//_, err := db.DataBase.Exec("UPDATE forum_user SET fullname = $1, about = $2, email = $3 WHERE LOWER(nickname)=LOWER($4);", u.Fullname, u.About, u.Email, u.Nickname)
 	if err != nil {
@@ -125,17 +125,17 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 	subQuery :=
 		`select u.* from forum_user u
 		JOIN 
-		((select distinct author from thread WHERE LOWER(forum)=LOWER($1))
+		((select distinct author from thread WHERE forum = $1)
 		UNION 
-		(select distinct author from post WHERE LOWER(forum)=LOWER($1))) as p ON nickname=p.author `
+		(select distinct author from post WHERE forum = $1)) as p ON nickname=p.author `
 	if since != "" {
-		subQuery += "WHERE LOWER(u.nickname) "
+		subQuery += "WHERE u.nickname "
 		if desc {
-			subQuery += "< LOWER($2) "
+			subQuery += "< $2 "
 		} else {
-			subQuery += "> LOWER($2) "
+			subQuery += "> $2 "
 		}
-		subQuery += "ORDER BY LOWER(nickname) "
+		subQuery += "ORDER BY nickname "
 		if desc {
 			subQuery += "DESC "
 		}
@@ -145,7 +145,7 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 			rows, err = db.DataBase.Query(subQuery+";", slug, since)
 		}
 	} else {
-		subQuery += "ORDER BY LOWER(nickname) "
+		subQuery += "ORDER BY nickname "
 		if desc {
 			subQuery += "DESC "
 		}

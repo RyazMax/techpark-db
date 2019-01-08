@@ -26,14 +26,14 @@ func (f *Forum) Create(db *database.DB) error {
 }
 
 func (f *Forum) Update(db *database.DB) {
-	_, err := db.DataBase.Exec("UPDATE forum SET threads=$1, posts=$2 WHERE LOWER(slug)=LOWER($3);", f.Threads, f.Posts, f.Slug)
+	_, err := db.DataBase.Exec("UPDATE forum SET threads=$1, posts=$2 WHERE slug = $3;", f.Threads, f.Posts, f.Slug)
 	if err != nil {
 		beego.Warn(err)
 	}
 }
 
 func (f *Forum) GetBySlug(slug string, db *database.DB) (exist bool) {
-	rows, err := db.DataBase.Query("select * from forum where LOWER(slug)=LOWER($1);", slug)
+	rows, err := db.DataBase.Query("select * from forum where slug = $1;", slug)
 	defer rows.Close()
 	if err != nil {
 		log.Println(err)

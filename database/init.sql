@@ -143,6 +143,8 @@ CREATE TRIGGER incVotesOnUpdateVote
 AFTER UPDATE ON vote
 FOR EACH ROW EXECUTE PROCEDURE incVotesUpd();
 
+--CREATE TABLE 
+
 DROP INDEX IF EXISTS forum_user_nickname_idx;
 DROP INDEX IF EXISTS forum_user_nickname_email_idx;
 DROP INDEX IF EXISTS vote_username_thread_idx;

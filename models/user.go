@@ -2,7 +2,9 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"strings"
 	"techpark-db/database"
 
 	"github.com/astaxie/beego"
@@ -169,6 +171,30 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 			return nil
 		}
 		users = append(users, u)
+	}
+	return users
+}
+
+func GetUsersByNicks(nicks []string, db *database.DB) Users {
+	var query strings.Builder
+	for _, name := range nicks {
+		query.WriteString(fmt.Sprintf("SELECT * FROM forum_user WHERE nickname='%s'; ", name))
+	}
+	rows, err := db.DataBase.Query(query.String())
+	if err != nil {
+		beego.Warn(err)
+		return make(Users, 0)
+	}
+	users := make(Users, 0)
+	for rows.Next() {
+		var u User
+		err = rows.Scan(&u.Email, &u.About, &u.Fullname, &u.Nickname)
+		if err != nil {
+			beego.Warn(err)
+			return nil
+		}
+		users = append(users, u)
+		rows.Next()
 	}
 	return users
 }

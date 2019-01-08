@@ -93,19 +93,16 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 	result := make(Posts, 0)
 	curTime := time.Now().Format(time.RFC3339)
 	thread_ids := t.GetPostsID(db)
+	authors := make([]string, 0, len(posts))
 	for _, post := range posts {
 		post.Thread = t.ID
 		post.Forum = t.Forum
-		author := User{}
-		exist := author.GetUserByNick(post.Author, db)
-		if !exist {
-			return posts, errors.New("No author")
-		}
+		authors = append(authors, post.Author)
 		if post.Parent == 0 {
 			continue
 		}
 
-		exist = false
+		exist := false
 		if post.Parent != 0 {
 			for _, id := range thread_ids {
 				if id == post.Parent {
@@ -118,6 +115,11 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		if !exist {
 			return result, errors.New("No parent in thread")
 		}
+	}
+
+	tmp := GetUsersByNicks(authors, db)
+	if len(tmp) != len(posts) {
+		return result, errors.New("No author")
 	}
 
 	var query strings.Builder

@@ -217,22 +217,24 @@ func GetPostsSortedParentTree(id int, limit int, since string, desc bool, db *da
 	sorted AS (SELECT * FROM post WHERE thread=$1 `
 	if since != "" {
 		query = "since AS (SELECT mpath FROM post WHERE id=$2), " + query
-		query += "AND mpath "
+		query += "AND mpath[1] "
 		if desc {
-			query += "< (SELECT mpath FROM since) "
+			query += "< (SELECT mpath[1] FROM since) "
 		} else {
-			query += "> (SELECT mpath FROM since) "
+			query += "> (SELECT mpath[1] FROM since) "
 		}
-		query += "ORDER BY mpath "
+		query += "ORDER BY mpath[1] "
 		if desc {
 			query += "DESC"
 		}
+		query += ", mpath[1:]"
 		query += ")"
 	} else {
-		query += "ORDER BY mpath "
+		query += "ORDER BY mpath[1] "
 		if desc {
 			query += "DESC"
 		}
+		query += ", mpath[1:]"
 		query += ")"
 	}
 
@@ -243,18 +245,18 @@ func GetPostsSortedParentTree(id int, limit int, since string, desc bool, db *da
 		} else {
 			query += ", pag AS (SELECT mpath FROM sorted WHERE parent=0 OFFSET $2 LIMIT 1) "
 		}
-		query += "SELECT author, created,forum,id,isedited,msg,parent,thread FROM sorted" // WHERE NOT mpath "
-		/*if desc {
+		query += "SELECT author, created,forum,id,isedited,msg,parent,thread FROM sorted  WHERE NOT mpath "
+		if desc {
 			query += " < "
 		} else {
 			query += " > "
 		}
-		*/
-		//query += " (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::bigint[])) OR mpath[0] = (SELECT mpath[0] FROM pag) OR (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::bigint[])) = ARRAY[]::bigint[];"
+
+		query += " (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::bigint[])) OR mpath[1] = (SELECT mpath[1] FROM pag) OR (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::bigint[])) = ARRAY[]::bigint[];"
 		if since != "" {
-			rows, err = db.DataBase.Query(query, id, since, limit)
+			rows, err = db.DataBase.Query(query, id, since, limit-1)
 		} else {
-			rows, err = db.DataBase.Query(query, id, limit)
+			rows, err = db.DataBase.Query(query, id, limit-1)
 		}
 	} else {
 		query += "SELECT author, created,forum,id,isedited,msg,parent,thread FROM sorted;"

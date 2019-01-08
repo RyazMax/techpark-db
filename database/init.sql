@@ -163,5 +163,6 @@ CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (nickname, thread);
 
 CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread);
 CREATE INDEX IF NOT EXISTS posts_thread_created_idx ON post(thread, created);
+CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]))
 --CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));
 --CREATE INDEX IF NOT EXISTS post_mpath_desc_id ON post((mpath[1]) desc, (mpath[2:]))

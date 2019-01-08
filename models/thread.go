@@ -183,32 +183,36 @@ func GetThreadsSorted(slug string, limit int, since string, desc bool, db *datab
 	}*/
 
 	// Исправлена вложенность
-	subQuery := "SELECT * FROM THREAD WHERE FORUM = $1"
+	var subQuery strings.Builder
+	subQuery.WriteString("SELECT * FROM THREAD WHERE FORUM = $1")
 	if since != "" {
-		subQuery += " AND created "
+		subQuery.WriteString(" AND created ")
 		if desc {
-			subQuery += "<= $2 "
+			subQuery.WriteString("<= $2 ")
 		} else {
-			subQuery += ">= $2 "
+			subQuery.WriteString(">= $2 ")
 		}
-		subQuery += "ORDER BY created "
+		subQuery.WriteString("ORDER BY created ")
 		if desc {
-			subQuery += "DESC "
+			subQuery.WriteString("DESC ")
 		}
 		if limit != 0 {
-			rows, err = db.DataBase.Query(subQuery+"LIMIT $3;", slug, since, limit)
+			subQuery.WriteString("LIMIT $3;")
+			rows, err = db.DataBase.Query(subQuery.String(), slug, since, limit)
 		} else {
-			rows, err = db.DataBase.Query(subQuery+";", slug, since)
+			subQuery.WriteString(";")
+			rows, err = db.DataBase.Query(subQuery.String(), slug, since)
 		}
 	} else {
-		subQuery += "ORDER BY created "
+		subQuery.WriteString("ORDER BY created ")
 		if desc {
-			subQuery += "DESC "
+			subQuery.WriteString("DESC ")
 		}
 		if limit != 0 {
-			rows, err = db.DataBase.Query(subQuery+"LIMIT $2;", slug, limit)
+			subQuery.WriteString("LIMIT $2;")
+			rows, err = db.DataBase.Query(subQuery.String(), slug, limit)
 		} else {
-			rows, err = db.DataBase.Query(subQuery, slug)
+			rows, err = db.DataBase.Query(subQuery.String(), slug)
 		}
 	}
 	defer rows.Close()

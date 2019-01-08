@@ -3,6 +3,8 @@ package models
 import (
 	"log"
 	"techpark-db/database"
+
+	"github.com/astaxie/beego"
 )
 
 type Forum struct {
@@ -21,6 +23,13 @@ func (f *Forum) Create(db *database.DB) error {
 		return err
 	}
 	return nil
+}
+
+func (f *Forum) Update(db *database.DB) {
+	_, err := db.DataBase.Exec("UPDATE forum SET threads=$1, posts=$2 WHERE LOWER(slug)=LOWER($3);", f.Threads, f.Posts, f.Slug)
+	if err != nil {
+		beego.Warn(err)
+	}
 }
 
 func (f *Forum) GetBySlug(slug string, db *database.DB) (exist bool) {

@@ -63,8 +63,8 @@ func (c *ForumSlugController) Post() {
 		}
 	}
 
-	forum.Threads++
-	forum.Update(c.DB)
+	//forum.Threads++
+	//forum.Update(c.DB)
 	newId := newThread.Add(c.DB)
 	newThread.GetById(newId, c.DB)
 	c.Ctx.Output.SetStatus(http.StatusCreated)

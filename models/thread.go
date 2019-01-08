@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"techpark-db/database"
 	"time"
 
@@ -68,9 +70,29 @@ func (t *Thread) GetBySlug(slug string, db *database.DB) bool {
 	return true
 }
 
+func (t *Thread) GetPostsID(db *database.DB) (res []int) {
+	rows, err := db.DataBase.Query("SELECT id FROM post WHERE thread=$1;", t.ID)
+	defer rows.Close()
+	if err != nil {
+		beego.Warn(err)
+		return make([]int, 0)
+	}
+	var i int
+	for rows.Next() {
+		rows.Scan(&i)
+		if err != nil {
+			beego.Warn(err)
+			return make([]int, 0)
+		}
+		res = append(res, i)
+	}
+	return
+}
+
 func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 	result := make(Posts, 0)
 	curTime := time.Now().Format(time.RFC3339)
+	thread_ids := t.GetPostsID(db)
 	for _, post := range posts {
 		post.Thread = t.ID
 		post.Forum = t.Forum
@@ -82,25 +104,50 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		if post.Parent == 0 {
 			continue
 		}
-		parent := Post{}
-		exist = parent.GetByID(post.Parent, db)
-		if !exist {
-			return posts, errors.New("No parent")
+
+		exist = false
+		if post.Parent != 0 {
+			for _, id := range thread_ids {
+				if id == post.Parent {
+					exist = true
+				}
+			}
+		} else {
+			exist = true
 		}
-		if parent.Thread != post.Thread {
-			return posts, errors.New("Parent in other thread")
+		if !exist {
+			return result, errors.New("No parent in thread")
 		}
 	}
-	for _, post := range posts {
+
+	var query strings.Builder
+	args := make([]interface{}, 0)
+	query.WriteString("insert into post(author,msg,parent,forum,thread,created) values ")
+	for i, post := range posts {
 		post.Thread = t.ID
 		post.Forum = t.Forum
 		post.Created = curTime
-		err := post.Add(db)
+		if i != 0 {
+			query.WriteString(fmt.Sprintf(",($%d, $%d, $%d, $%d, $%d, $%d) ", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6))
+		} else {
+			query.WriteString(fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d) ", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6))
+		}
+		args = append(args, post.Author, post.Message, post.Parent, post.Forum, post.Thread, post.Created)
+	}
+	query.WriteString("RETURNING author,created,forum,id,isedited,msg,parent,thread;")
+	if len(posts) > 0 {
+		rows, err := db.DataBase.Query(query.String(), args...)
+		defer rows.Close()
 		if err != nil {
 			beego.Warn(err)
 			return posts, err
 		}
-		result = append(result, post)
+		p := Post{}
+		for rows.Next() {
+
+			rows.Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
+			result = append(result, p)
+		}
 	}
 
 	return result, nil

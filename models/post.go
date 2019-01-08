@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"log"
 	"techpark-db/database"
 
 	"github.com/astaxie/beego"
@@ -35,6 +34,10 @@ type Posts []Post
 
 func (p *Post) Add(db *database.DB) error {
 	//var d []uint8
+	/*var str strings.Builder
+	str.
+	stmt, err := db.DataBase.Prepare("insert into post(author,msg,parent,forum,thread,created)" +
+		"values ($1,$2,$3,$4,$5,$6) RETURNING author,created,forum,id,isedited,msg,parent,thread;")
 	err := db.DataBase.QueryRow("insert into post(author,msg,parent,forum,thread,created)"+
 		"values ($1,$2,$3,$4,$5,$6) RETURNING author,created,forum,id,isedited,msg,parent,thread;",
 		p.Author, p.Message, p.Parent, p.Forum, p.Thread, p.Created).
@@ -42,8 +45,8 @@ func (p *Post) Add(db *database.DB) error {
 	if err != nil {
 		beego.Warn(err)
 		log.Println(err)
-	}
-	return err
+	}*/
+	return nil
 }
 
 func (p *Post) Update(db *database.DB) {

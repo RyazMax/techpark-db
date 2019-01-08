@@ -65,8 +65,7 @@ func (c *ForumSlugController) Post() {
 
 	//forum.Threads++
 	//forum.Update(c.DB)
-	newId := newThread.Add(c.DB)
-	newThread.GetById(newId, c.DB)
+	newThread.Add(c.DB)
 	c.Ctx.Output.SetStatus(http.StatusCreated)
 	c.Data["json"] = &newThread
 	c.ServeJSON()

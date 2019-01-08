@@ -30,19 +30,19 @@ type ThreadUpdate struct {
 
 type Threads []Thread
 
-func (t *Thread) Add(db *database.DB) int {
-	var id int
+func (t *Thread) Add(db *database.DB) {
 	var err error
 	if t.Created == "" {
-		err = db.DataBase.QueryRow("INSERT INTO THREAD(author, forum, msg, title, slug) values ($1, $2, $3, $4, $5) RETURNING id;", t.Author, t.Forum, t.Message, t.Title, t.Slug).Scan(&id)
+		err = db.DataBase.QueryRow("INSERT INTO THREAD(author, forum, msg, title, slug) values ($1, $2, $3, $4, $5) RETURNING *;", t.Author, t.Forum, t.Message, t.Title, t.Slug).
+			Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 	} else {
-		err = db.DataBase.QueryRow("INSERT INTO THREAD(author, created, forum, msg, title, slug) values ($1, $2, $3, $4, $5, $6) RETURNING id;", t.Author, t.Created, t.Forum, t.Message, t.Title, t.Slug).Scan(&id)
+		err = db.DataBase.QueryRow("INSERT INTO THREAD(author, created, forum, msg, title, slug) values ($1, $2, $3, $4, $5, $6) RETURNING *;", t.Author, t.Created, t.Forum, t.Message, t.Title, t.Slug).
+			Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 	}
 	if err != nil {
 		beego.Warn(err)
-		return 0
+		return
 	}
-	return id
 }
 
 func (t *Thread) Update(db *database.DB) {

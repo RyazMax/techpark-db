@@ -57,10 +57,12 @@ func (c *ThreadCreateController) Post() {
 		c.ServeJSON()
 		return
 	}
-	forum := models.Forum{}
+
+	// Обновление форума
+	/*forum := models.Forum{}
 	forum.GetBySlug(thread.Forum, c.DB)
 	forum.Posts += len(posts)
-	forum.Update(c.DB)
+	forum.Update(c.DB)*/
 
 	c.Ctx.Output.SetStatus(http.StatusCreated)
 	c.Data["json"] = &posts

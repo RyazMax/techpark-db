@@ -64,7 +64,6 @@ func (c *ThreadVoteController) Post() {
 		delta = vote.Voice
 	}
 	thread.Votes += delta
-	thread.Update(c.DB)
 
 	if exist {
 		vote.Update(c.DB)

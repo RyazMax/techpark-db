@@ -38,6 +38,22 @@ CREATE TABLE IF NOT EXISTS thread (
     FOREIGN KEY(forum) REFERENCES forum(slug)
 );
 
+/* Триггер на добавление thread
+*/
+
+CREATE OR REPLACE FUNCTION incThreads() RETURNS TRIGGER AS
+$$BEGIN
+    UPDATE forum SET threads = threads + 1 WHERE LOWER(slug) = LOWER(NEW.forum);
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
+DROP TRIGGER IF EXISTS incThreadsOnInsertThread on thread;
+
+CREATE TRIGGER incThreadsOnInsertThread 
+AFTER INSERT ON thread
+FOR EACH ROW EXECUTE PROCEDURE incThreads();
+
 CREATE TABLE IF NOT EXISTS post (
     author CITEXT,
     created TIMESTAMP WITH TIME ZONE DEFAULT now(),
@@ -53,6 +69,21 @@ CREATE TABLE IF NOT EXISTS post (
     FOREIGN KEY(forum) REFERENCES forum(slug),
     FOREIGN KEY(thread) REFERENCES thread(id)
 );
+/*
+Триггер на добавление поста
+*/
+CREATE OR REPLACE FUNCTION incPosts() RETURNS TRIGGER AS
+$$BEGIN
+    UPDATE forum SET posts = posts + 1 WHERE LOWER(slug) = LOWER(NEW.forum);
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
+DROP TRIGGER IF EXISTS incPostsOnInsertPost on post;
+
+CREATE TRIGGER incPostsOnInsertPost 
+AFTER INSERT ON post
+FOR EACH ROW EXECUTE PROCEDURE incPosts();
 
 
 
@@ -95,10 +126,38 @@ $$ LANGUAGE PLPGSQL;
 
 DROP TRIGGER IF EXISTS incVotesOnInsertVote on vote;
 
+CREATE OR REPLACE FUNCTION incVotesUpd() RETURNS TRIGGER AS
+$$BEGIN
+    UPDATE thread SET votes = votes + NEW.voice - OLD.voice WHERE id = NEW.thread;
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
 CREATE TRIGGER incVotesOnInsertVote 
 AFTER INSERT ON vote
 FOR EACH ROW EXECUTE PROCEDURE incVotes();
 
-DROP TRIGGER IF EXISTS incVotesOnInsertVote on vote;
+DROP TRIGGER IF EXISTS incVotesOnUpdateVote on vote;
 
-CREATE INDEX idx_forum_user_nickname_email ON forum_user(nickname, email);
+CREATE TRIGGER incVotesOnUpdateVote 
+AFTER UPDATE ON vote
+FOR EACH ROW EXECUTE PROCEDURE incVotesUpd();
+
+DROP INDEX IF EXISTS forum_user_nickname_email_idx;
+DROP INDEX IF EXISTS vote_username_thread_idx;
+DROP INDEX IF EXISTS thread_forum_created_idx;
+DROP INDEX IF EXISTS thread_slug_idx;
+
+DROP INDEX IF EXISTS posts_thread_id_idx;
+DROP INDEX IF EXISTS post_mpath_idx;
+DROP INDEX IF EXISTS post_mpath_desc_idx;
+
+CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(nickname, email);
+
+CREATE INDEX IF NOT EXISTS thread_slug_idx on thread (slug);
+CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (forum, created);
+CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (nickname, thread);
+
+CREATE INDEX IF NOT EXISTS posts_thread_id_idx ON post(thread, created);
+CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));
+CREATE INDEX IF NOT EXISTS post_mpath_desc_id ON post((mpath[1]) desc, (mpath[2:]))

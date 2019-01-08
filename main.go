@@ -9,6 +9,7 @@ import (
 	"techpark-db/routers"
 
 	"github.com/astaxie/beego"
+	_ "github.com/gorilla/mux"
 )
 
 func main() {

@@ -86,4 +86,19 @@ CREATE TABLE IF NOT EXISTS vote (
     FOREIGN KEY(thread) REFERENCES thread(id)
 );
 
+CREATE OR REPLACE FUNCTION incVotes() RETURNS TRIGGER AS
+$$BEGIN
+    UPDATE thread SET votes = votes + NEW.voice WHERE id = NEW.thread;
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
+DROP TRIGGER IF EXISTS incVotesOnInsertVote on vote;
+
+CREATE TRIGGER incVotesOnInsertVote 
+AFTER INSERT ON vote
+FOR EACH ROW EXECUTE PROCEDURE incVotes();
+
+DROP TRIGGER IF EXISTS incVotesOnInsertVote on vote;
+
 CREATE INDEX idx_forum_user_nickname_email ON forum_user(nickname, email);

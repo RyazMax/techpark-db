@@ -8,6 +8,8 @@ import (
 	"techpark-db/database"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/astaxie/beego"
 )
 
@@ -147,7 +149,9 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		rows, err := db.DataBase.Query(query.String(), args...)
 		defer rows.Close()
 		if err != nil {
-			beego.Warn(err)
+			pqErr := err.(*pq.Error)
+			beego.Warn(pqErr.InternalQuery)
+			beego.Warn(pqErr.Error())
 			return posts, err
 		}
 		p := Post{}

@@ -95,38 +95,38 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 	result := make(Posts, 0)
 	curTime := time.Now().Format(time.RFC3339)
 	//thread_ids := t.GetPostsID(db)
-	authors := make([]string, 0, len(posts))
-	parents := make([]int, 0, len(posts))
+	authors := make(map[string]bool)
+	parents := make(map[int]bool)
 	for _, post := range posts {
 		post.Thread = t.ID
 		post.Forum = t.Forum
-		authors = append(authors, post.Author)
-		parents = append(parents, post.Parent)
-		/*if post.Parent == 0 {
-			continue
+		authors[post.Author] = true
+		if post.Parent != 0 {
+			parents[post.Parent] = true
 		}
 
-		exist := false
-		if post.Parent != 0 {
-			for _, id := range thread_ids {
-				if id == post.Parent {
-					exist = true
+		/*
+			exist := false
+			if post.Parent != 0 {
+				for _, id := range thread_ids {
+					if id == post.Parent {
+						exist = true
+					}
 				}
+			} else {
+				exist = true
 			}
-		} else {
-			exist = true
-		}
-		if !exist {
-			return result, errors.New("No parent in thread")
-		}*/
+			if !exist {
+				return result, errors.New("No parent in thread")
+			}*/
 	}
 
 	tmp := GetUsersByNicks(authors, db)
-	if len(tmp) != len(posts) {
+	if len(tmp) != len(authors) {
 		return result, errors.New("No author")
 	}
 	parents_found := GetPostsByID(parents, t.ID, db)
-	if len(parents_found) != len(posts) {
+	if len(parents_found) != len(parents) {
 		return result, errors.New("Parent in other thread")
 	}
 

@@ -176,13 +176,23 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 	return users
 }
 
-func GetUsersByNicks(nicks []string, db *database.DB) Users {
-	var query strings.Builder
-	for _, name := range nicks {
-		query.WriteString(fmt.Sprintf("SELECT * FROM forum_user WHERE nickname='%s'; ", name))
+func GetUsersByNicks(nicks map[string]bool, db *database.DB) Users {
+	if len(nicks) == 0 {
+		return make(Users, 0)
 	}
+	var query strings.Builder
+	query.WriteString("SELECT * FROM forum_user WHERE ")
+	var cnt int
+	for name := range nicks {
+		if cnt > 0 {
+			query.WriteString("OR ")
+		}
+		query.WriteString(fmt.Sprintf("nickname='%s' ", name))
+	}
+	query.WriteString(";")
 
 	rows, err := db.DataBase.Query(query.String())
+	defer rows.Close()
 	if err != nil {
 		beego.Warn(err)
 		return make(Users, 0)
@@ -196,7 +206,6 @@ func GetUsersByNicks(nicks []string, db *database.DB) Users {
 			return nil
 		}
 		users = append(users, u)
-		rows.Next()
 	}
 	return users
 }

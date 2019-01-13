@@ -55,21 +55,25 @@ func (c *ThreadVoteController) Post() {
 	vote.Thread = thread.ID
 	vote.Nickname = author.Nickname
 
-	oldVote := models.Vote{}
-	exist = oldVote.GetByNickAndID(vote.Nickname, thread.ID, c.DB)
-	delta := 0
-	if exist {
+	//oldVote := models.Vote{}
+	//exist = oldVote.GetByNickAndID(vote.Nickname, thread.ID, c.DB)
+	//delta := 0
+	/*if exist {
 		delta = vote.Voice - oldVote.Voice
 	} else {
 		delta = vote.Voice
 	}
-	thread.Votes += delta
+	thread.Votes += delta*/
 
-	if exist {
+	/*if exist {
 		vote.Update(c.DB)
 	} else {
 		vote.Add(c.DB)
-	}
+	}*/
+	err = vote.Add(c.DB)
+	//pqErr := err.(*pq.Error)
+	//beego.Info(pqErr.Code)
+	thread.GetById(thread.ID, c.DB)
 	c.Data["json"] = &thread
 	c.ServeJSON()
 }

@@ -75,13 +75,13 @@ func (p *Post) GetByID(id int, db *database.DB) bool {
 	return true
 }
 
-func GetPostsByID(ids []int, db *database.DB) Posts {
+func GetPostsByID(ids []int, thread int, db *database.DB) Posts {
 	var query strings.Builder
 	for _, id := range ids {
 		if id == 0 {
-			query.WriteString("SELECT 1;")
+			query.WriteString("SELECT 1 as id;")
 		} else {
-			query.WriteString(fmt.Sprintf("SELECT * FROM post WHERE id = %d; ", id))
+			query.WriteString(fmt.Sprintf("SELECT id FROM post WHERE id = %d AND thread = %d; ", id, thread))
 		}
 	}
 
@@ -93,7 +93,7 @@ func GetPostsByID(ids []int, db *database.DB) Posts {
 	posts := make(Posts, 0)
 	for rows.Next() {
 		var p Post
-		err = rows.Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
+		err = rows.Scan(&p.Id)
 		if err != nil {
 			beego.Warn(err)
 			return nil

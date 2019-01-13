@@ -21,11 +21,13 @@ func (v *Vote) GetByNickAndID(nick string, id int, db *database.DB) bool {
 	return true
 }
 
-func (v *Vote) Add(db *database.DB) {
-	_, err := db.DataBase.Exec("INSERT INTO vote(nickname,voice,thread) values($1,$2,$3);", v.Nickname, v.Voice, v.Thread)
+func (v *Vote) Add(db *database.DB) error {
+	_, err := db.DataBase.Exec("INSERT INTO vote(nickname,voice,thread) values($1,$2,$3) ON CONFLICT (nickname, thread) DO UPDATE SET voice=$2;", v.Nickname, v.Voice, v.Thread)
 	if err != nil {
-		beego.Warn(err)
+		//beego.Warn(err)
+		return err
 	}
+	return nil
 }
 
 func (v *Vote) Update(db *database.DB) {

@@ -124,20 +124,21 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 		}*/
 
 	// Нет вложенного
-	subQuery :=
-		`select u.* from forum_user u
-		JOIN 
-		((select distinct author from thread WHERE forum = $1)
-		UNION 
-		(select distinct author from post WHERE forum = $1)) as p ON nickname=p.author `
+	/*subQuery :=
+	`select u.* from forum_user u
+	JOIN
+	((select distinct author from thread WHERE forum = $1)
+	UNION
+	(select distinct author from post WHERE forum = $1)) as p ON nickname=p.author `*/
+	subQuery := `select u.* from forum_user u JOIN user_in_forum uf ON u.nickname=uf.nickname where forum=$1 `
 	if since != "" {
-		subQuery += "WHERE u.nickname "
+		subQuery += "AND u.nickname "
 		if desc {
 			subQuery += "< $2 "
 		} else {
 			subQuery += "> $2 "
 		}
-		subQuery += "ORDER BY nickname "
+		subQuery += "GROUP BY u.nickname ORDER BY u.nickname "
 		if desc {
 			subQuery += "DESC "
 		}
@@ -147,7 +148,7 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 			rows, err = db.DataBase.Query(subQuery+";", slug, since)
 		}
 	} else {
-		subQuery += "ORDER BY nickname "
+		subQuery += "ORDER BY u.nickname "
 		if desc {
 			subQuery += "DESC "
 		}

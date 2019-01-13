@@ -187,6 +187,7 @@ func GetUsersByNicks(nicks map[string]bool, db *database.DB) Users {
 		if cnt > 0 {
 			query.WriteString("OR ")
 		}
+		cnt++
 		query.WriteString(fmt.Sprintf("nickname='%s' ", name))
 	}
 	query.WriteString(";")

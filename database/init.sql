@@ -149,6 +149,8 @@ CREATE TABLE user_in_forum (
     nickname CITEXT,
     forum CITEXT,
 
+    FOREIGN KEY(nickname) REFERENCES forum_user(nickname),
+    FOREIGN KEY(forum) REFERENCES forum(slug),
     UNIQUE(nickname,forum)
 );
 
@@ -156,7 +158,7 @@ CREATE TABLE user_in_forum (
 /* add user to forum*/
 CREATE OR REPLACE FUNCTION addUserOnThreads() RETURNS TRIGGER AS
 $$BEGIN
-    INSERT INTO user_in_forum(nickname, forum) VALUES (NEW.author, NEW.forum) ON CONFLICT (nickname, forum) DO NOTHING;
+    INSERT INTO user_in_forum(nickname, forum) VALUES (NEW.author, NEW.forum) ON CONFLICT DO NOTHING;
     RETURN NEW;
 END;
 $$ LANGUAGE PLPGSQL;
@@ -169,7 +171,7 @@ FOR EACH ROW EXECUTE PROCEDURE addUserOnThreads();
 
 CREATE OR REPLACE FUNCTION addUserOnPost() RETURNS TRIGGER AS
 $$BEGIN
-    INSERT INTO user_in_forum(nickname, forum) VALUES (NEW.author, NEW.forum) ON CONFLICT (nickname, forum) DO NOTHING;
+    INSERT INTO user_in_forum(nickname, forum) VALUES (NEW.author, NEW.forum) ON CONFLICT DO NOTHING;
     RETURN NEW;
 END;
 $$ LANGUAGE PLPGSQL;

@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 	"techpark-db/database"
 
 	"github.com/astaxie/beego"
@@ -71,6 +73,35 @@ func (p *Post) GetByID(id int, db *database.DB) bool {
 		return false
 	}
 	return true
+}
+
+func GetPostsByID(ids []int, db *database.DB) Posts {
+	var query strings.Builder
+	for _, id := range ids {
+		if id == 0 {
+			query.WriteString("SELECT 1;")
+		} else {
+			query.WriteString(fmt.Sprintf("SELECT * FROM post WHERE id = %d; ", id))
+		}
+	}
+
+	rows, err := db.DataBase.Query(query.String())
+	if err != nil {
+		beego.Warn(err)
+		return make(Posts, 0)
+	}
+	posts := make(Posts, 0)
+	for rows.Next() {
+		var p Post
+		err = rows.Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
+		if err != nil {
+			beego.Warn(err)
+			return nil
+		}
+		posts = append(posts, p)
+		rows.Next()
+	}
+	return posts
 }
 
 func GetPostsSortedFlat(id int, limit int, since string, desc bool, db *database.DB) Posts {

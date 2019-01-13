@@ -180,6 +180,7 @@ func GetUsersByNicks(nicks []string, db *database.DB) Users {
 	for _, name := range nicks {
 		query.WriteString(fmt.Sprintf("SELECT * FROM forum_user WHERE nickname='%s'; ", name))
 	}
+
 	rows, err := db.DataBase.Query(query.String())
 	if err != nil {
 		beego.Warn(err)

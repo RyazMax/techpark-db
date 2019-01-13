@@ -38,7 +38,7 @@ func (d *DatabaseInfo) Get(db *database.DB) {
 }
 
 func (d *DatabaseInfo) Clean(db *database.DB) {
-	_, err := db.DataBase.Exec("TRUNCATE forum_user, forum, thread, post, vote;")
+	_, err := db.DataBase.Exec("TRUNCATE forum_user, forum, thread, post, vote, user_in_forum;")
 	if err != nil {
 		beego.Warn(err)
 	}

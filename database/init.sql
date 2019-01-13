@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS forum CASCADE;
 DROP TABLE IF EXISTS post CASCADE;
 DROP TABLE IF EXISTS thread CASCADE;
 DROP TABLE IF EXISTS vote CASCADE;
+DROP TABLE IF EXISTS user_in_forum CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS citext;
 
@@ -143,7 +144,42 @@ CREATE TRIGGER incVotesOnUpdateVote
 AFTER UPDATE ON vote
 FOR EACH ROW EXECUTE PROCEDURE incVotesUpd();
 
---CREATE TABLE 
+CREATE TABLE user_in_forum (
+    nickname CITEXT,
+    forum CITEXT
+);
+
+
+/* add user to forum*/
+CREATE OR REPLACE FUNCTION addUserOnThreads() RETURNS TRIGGER AS
+$$BEGIN
+    INSERT INTO user_in_forum(nickname, forum) VALUES (NEW.author, NEW.forum);
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
+DROP TRIGGER IF EXISTS addUserOnThreadsTRIG on thread;
+
+CREATE TRIGGER addUserOnThreadsTRIG 
+AFTER INSERT ON thread
+FOR EACH ROW EXECUTE PROCEDURE addUserOnThreads();
+
+CREATE OR REPLACE FUNCTION addUserOnPost() RETURNS TRIGGER AS
+$$BEGIN
+    INSERT INTO user_in_forum(nickname, forum) VALUES (NEW.author, NEW.forum);
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
+DROP TRIGGER IF EXISTS addUserOnPostTRIG on post;
+
+CREATE TRIGGER addUserOnPostTRIG
+AFTER INSERT ON post
+FOR EACH ROW EXECUTE PROCEDURE addUserOnPost();
+ 
+
+DROP INDEX IF EXISTS user_in_forum_idx;
+CREATE INDEX user_in_forum_idx on user_in_forum(forum, nickname);
 
 DROP INDEX IF EXISTS forum_user_nickname_idx;
 DROP INDEX IF EXISTS forum_user_nickname_email_idx;
@@ -165,7 +201,7 @@ CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (forum, created);
 CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (nickname, thread);
 
 CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread);
-CREATE INDEX IF NOT EXISTS posts_thread_created_idx ON post(thread, created);
-CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]))
+--CREATE INDEX IF NOT EXISTS posts_thread_created_idx ON post(thread, created);
+--CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]))
 --CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));
 --CREATE INDEX IF NOT EXISTS post_mpath_desc_id ON post((mpath[1]) desc, (mpath[2:]))

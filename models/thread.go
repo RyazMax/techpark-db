@@ -131,11 +131,11 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 			}*/
 	}
 
-	tmp := GetUsersByNicks(authors, db)
+	tmp := GetUsersByNicks(&authors, db)
 	if len(tmp) != len(authors) {
 		return result, errors.New("No author")
 	}
-	parents_found := GetPostsByID(parents, t.ID, db)
+	parents_found := GetPostsByID(&parents, t.ID, db)
 	if len(parents_found) != len(parents) {
 		return result, errors.New("Parent in other thread")
 	}

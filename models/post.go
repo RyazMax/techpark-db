@@ -75,14 +75,14 @@ func (p *Post) GetByID(id int, db *database.DB) bool {
 	return true
 }
 
-func GetPostsByID(ids map[int]bool, thread int, db *database.DB) Posts {
-	if len(ids) == 0 {
+func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) Posts {
+	if len(*ids) == 0 {
 		return make(Posts, 0)
 	}
 	var query strings.Builder
 	query.WriteString("SELECT id FROM post WHERE (")
 	var cnt int
-	for id := range ids {
+	for id := range *ids {
 		if cnt > 0 {
 			query.WriteString("OR ")
 		}

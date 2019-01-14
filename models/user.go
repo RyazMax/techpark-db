@@ -176,14 +176,14 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 	return users
 }
 
-func GetUsersByNicks(nicks map[string]bool, db *database.DB) Users {
-	if len(nicks) == 0 {
+func GetUsersByNicks(nicks *map[string]bool, db *database.DB) Users {
+	if len(*nicks) == 0 {
 		return make(Users, 0)
 	}
 	var query strings.Builder
 	query.WriteString("SELECT * FROM forum_user WHERE ")
 	var cnt int
-	for name := range nicks {
+	for name := range *nicks {
 		if cnt > 0 {
 			query.WriteString("OR ")
 		}

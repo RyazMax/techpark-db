@@ -70,10 +70,10 @@ func (c *ThreadVoteController) Post() {
 	} else {
 		vote.Add(c.DB)
 	}*/
-	err = vote.Add(c.DB)
+	vote.Add(c.DB)
 	//pqErr := err.(*pq.Error)
 	//beego.Info(pqErr.Code)
-	thread.GetById(thread.ID, c.DB)
+	thread.Votes = thread.GetVotesById(thread.ID, c.DB)
 	c.Data["json"] = &thread
 	c.ServeJSON()
 }

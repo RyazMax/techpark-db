@@ -63,6 +63,16 @@ func (t *Thread) GetById(id int, db *database.DB) bool {
 	return true
 }
 
+func (t *Thread) GetVotesById(id int, db *database.DB) (votes int) {
+	err := db.DataBase.QueryRow("SELECT votes FROM THREAD WHERE id = $1;", id).
+		Scan(&votes)
+	if err != nil {
+		beego.Warn(err)
+		return 0
+	}
+	return votes
+}
+
 func (t *Thread) GetBySlug(slug string, db *database.DB) bool {
 	err := db.DataBase.QueryRow("SELECT * FROM THREAD WHERE slug=$1", slug).
 		Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)

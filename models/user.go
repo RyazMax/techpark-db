@@ -28,7 +28,7 @@ type Users []User
 func (newUser *User) Add(db *database.DB) error {
 	_, err := db.DataBase.Exec("insert into forum_user(email,about,fullname,nickname) values ($1,$2,$3,$4);", newUser.Email, newUser.About, newUser.Fullname, newUser.Nickname)
 	if err != nil {
-
+		beego.Warn("IN ADD", err)
 		return err
 	}
 	return nil

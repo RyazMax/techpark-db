@@ -1,6 +1,6 @@
 package main
 
-// docker build -t a.navrotskiy https://github.com/bozaro/tech-db-forum-server.git
+// docker build -t a.navrotskiy https://github.com/RyazMax/techpark-db.git
 // docker run -p 5000:5000 --name a.navrotskiy -t a.navrotskiy
 // ./tech-db-forum func -u http://localhost:5000/api -r report.html
 

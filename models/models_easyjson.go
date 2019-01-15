@@ -419,7 +419,9 @@ func easyjsonD2b7633eDecodeTechparkDbModels4(in *jlexer.Lexer, out *Thread) {
 		case "author":
 			out.Author = string(in.String())
 		case "created":
-			out.Created = string(in.String())
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Created).UnmarshalJSON(data))
+			}
 		case "forum":
 			out.Forum = string(in.String())
 		case "id":
@@ -466,7 +468,7 @@ func easyjsonD2b7633eEncodeTechparkDbModels4(out *jwriter.Writer, in Thread) {
 		} else {
 			out.RawString(prefix)
 		}
-		out.String(string(in.Created))
+		out.Raw((in.Created).MarshalJSON())
 	}
 	{
 		const prefix string = ",\"forum\":"
@@ -662,7 +664,9 @@ func easyjsonD2b7633eDecodeTechparkDbModels6(in *jlexer.Lexer, out *PostFull) {
 				if out.Author == nil {
 					out.Author = new(User)
 				}
-				(*out.Author).UnmarshalEasyJSON(in)
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.Author).UnmarshalJSON(data))
+				}
 			}
 		case "forum":
 			if in.IsNull() {
@@ -672,7 +676,9 @@ func easyjsonD2b7633eDecodeTechparkDbModels6(in *jlexer.Lexer, out *PostFull) {
 				if out.Forum == nil {
 					out.Forum = new(Forum)
 				}
-				(*out.Forum).UnmarshalEasyJSON(in)
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.Forum).UnmarshalJSON(data))
+				}
 			}
 		case "post":
 			if in.IsNull() {
@@ -682,7 +688,9 @@ func easyjsonD2b7633eDecodeTechparkDbModels6(in *jlexer.Lexer, out *PostFull) {
 				if out.Post == nil {
 					out.Post = new(Post)
 				}
-				(*out.Post).UnmarshalEasyJSON(in)
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.Post).UnmarshalJSON(data))
+				}
 			}
 		case "thread":
 			if in.IsNull() {
@@ -692,7 +700,9 @@ func easyjsonD2b7633eDecodeTechparkDbModels6(in *jlexer.Lexer, out *PostFull) {
 				if out.Thread == nil {
 					out.Thread = new(Thread)
 				}
-				(*out.Thread).UnmarshalEasyJSON(in)
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.Thread).UnmarshalJSON(data))
+				}
 			}
 		default:
 			in.SkipRecursive()
@@ -719,7 +729,7 @@ func easyjsonD2b7633eEncodeTechparkDbModels6(out *jwriter.Writer, in PostFull) {
 		if in.Author == nil {
 			out.RawString("null")
 		} else {
-			(*in.Author).MarshalEasyJSON(out)
+			out.Raw((*in.Author).MarshalJSON())
 		}
 	}
 	{
@@ -733,7 +743,7 @@ func easyjsonD2b7633eEncodeTechparkDbModels6(out *jwriter.Writer, in PostFull) {
 		if in.Forum == nil {
 			out.RawString("null")
 		} else {
-			(*in.Forum).MarshalEasyJSON(out)
+			out.Raw((*in.Forum).MarshalJSON())
 		}
 	}
 	{
@@ -747,7 +757,7 @@ func easyjsonD2b7633eEncodeTechparkDbModels6(out *jwriter.Writer, in PostFull) {
 		if in.Post == nil {
 			out.RawString("null")
 		} else {
-			(*in.Post).MarshalEasyJSON(out)
+			out.Raw((*in.Post).MarshalJSON())
 		}
 	}
 	{
@@ -761,7 +771,7 @@ func easyjsonD2b7633eEncodeTechparkDbModels6(out *jwriter.Writer, in PostFull) {
 		if in.Thread == nil {
 			out.RawString("null")
 		} else {
-			(*in.Thread).MarshalEasyJSON(out)
+			out.Raw((*in.Thread).MarshalJSON())
 		}
 	}
 	out.RawByte('}')
@@ -812,7 +822,9 @@ func easyjsonD2b7633eDecodeTechparkDbModels7(in *jlexer.Lexer, out *Post) {
 		case "author":
 			out.Author = string(in.String())
 		case "created":
-			out.Created = string(in.String())
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Created).UnmarshalJSON(data))
+			}
 		case "forum":
 			out.Forum = string(in.String())
 		case "id":
@@ -880,7 +892,7 @@ func easyjsonD2b7633eEncodeTechparkDbModels7(out *jwriter.Writer, in Post) {
 		} else {
 			out.RawString(prefix)
 		}
-		out.String(string(in.Created))
+		out.Raw((in.Created).MarshalJSON())
 	}
 	{
 		const prefix string = ",\"forum\":"

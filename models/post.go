@@ -33,6 +33,7 @@ type PostUpdate struct {
 	Message string `json:"message,ommitempty"`
 }
 
+//easyjson:json
 type Posts []Post
 
 func (p *Post) Add(db *database.DB) error {

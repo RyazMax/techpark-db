@@ -39,7 +39,7 @@ func (c *ThreadCreateController) Post() {
 	json.Unmarshal(body, &posts)
 
 	posts, err = thread.AddPosts(posts, c.DB)
-	beego.Info("IN CONTROLL posts_len ", len(posts))
+	//beego.Info("IN CONTROLL posts_len ", len(posts))
 	if err != nil && err.Error() == "No author" {
 		c.Ctx.Output.SetStatus(http.StatusNotFound)
 		c.Data["json"] = &models.Message{Message: "Author not found"}

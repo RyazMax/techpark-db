@@ -155,9 +155,12 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 			rows.Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
 			result = append(result, p)
 		}
+		if len(result) == 0 {
+			beego.Info("ERR")
+		}
 	}
 
-	beego.Info("In model ", len(result))
+	//beego.Info("In model ", len(result))
 	return result, nil
 }
 

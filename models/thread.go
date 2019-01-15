@@ -114,21 +114,6 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		if post.Parent != 0 {
 			parents[post.Parent] = true
 		}
-
-		/*
-			exist := false
-			if post.Parent != 0 {
-				for _, id := range thread_ids {
-					if id == post.Parent {
-						exist = true
-					}
-				}
-			} else {
-				exist = true
-			}
-			if !exist {
-				return result, errors.New("No parent in thread")
-			}*/
 	}
 
 	tmp := GetUsersByNicks(&authors, db)
@@ -172,6 +157,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		}
 	}
 
+	beego.Info(result)
 	return result, nil
 }
 

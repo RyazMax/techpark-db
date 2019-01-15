@@ -1,13 +1,13 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"strings"
 	"techpark-db/database"
 
 	"github.com/astaxie/beego"
+	"github.com/jackc/pgx"
 )
 
 type User struct {
@@ -89,7 +89,7 @@ func (u *User) Update(db *database.DB) error {
 
 func GetUsersSorted(slug string, limit int, since string, desc bool, db *database.DB) Users {
 	var (
-		rows *sql.Rows
+		rows *pgx.Rows
 		err  error
 	)
 	/*

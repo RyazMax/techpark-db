@@ -1,28 +1,28 @@
 package models
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
 	"techpark-db/database"
 	"time"
 
+	"github.com/jackc/pgx"
 	"github.com/lib/pq"
 
 	"github.com/astaxie/beego"
 )
 
 type Thread struct {
-	Author   string `json:"author"`
-	Created  string `json:"created,ommitempty"`
-	Forum    string `json:"forum"`
-	ID       int    `json:"id"`
-	IsEdited bool   `json:"isEdited"`
-	Message  string `json:"message"`
-	Slug     string `json:"slug,ommitempty"`
-	Title    string `json:"title"`
-	Votes    int    `json:"votes"`
+	Author   string    `json:"author"`
+	Created  time.Time `json:"created,ommitempty"`
+	Forum    string    `json:"forum"`
+	ID       int       `json:"id"`
+	IsEdited bool      `json:"isEdited"`
+	Message  string    `json:"message"`
+	Slug     string    `json:"slug,ommitempty"`
+	Title    string    `json:"title"`
+	Votes    int       `json:"votes"`
 }
 
 type ThreadUpdate struct {
@@ -34,7 +34,7 @@ type Threads []Thread
 
 func (t *Thread) Add(db *database.DB) {
 	var err error
-	if t.Created == "" {
+	if t.Created.IsZero() {
 		err = db.DataBase.QueryRow("INSERT INTO THREAD(author, forum, msg, title, slug) values ($1, $2, $3, $4, $5) RETURNING *;", t.Author, t.Forum, t.Message, t.Title, t.Slug).
 			Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 	} else {
@@ -103,7 +103,7 @@ func (t *Thread) GetPostsID(db *database.DB) (res []int) {
 
 func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 	result := make(Posts, 0)
-	curTime := time.Now().Format(time.RFC3339)
+	curTime := time.Now()
 	//thread_ids := t.GetPostsID(db)
 	authors := make(map[string]bool)
 	parents := make(map[int]bool)
@@ -177,7 +177,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 
 func GetThreadsSorted(slug string, limit int, since string, desc bool, db *database.DB) Threads {
 	var (
-		rows *sql.Rows
+		rows *pgx.Rows
 		err  error
 	)
 	/*subQuery := "SELECT * FROM THREAD WHERE LOWER(FORUM) = LOWER($1) ORDER BY created "

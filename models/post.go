@@ -1,24 +1,25 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 	"techpark-db/database"
+	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/jackc/pgx"
 )
 
 type Post struct {
-	Author   string `json:"author"`
-	Created  string `json:"created"`
-	Forum    string `json:"forum"`
-	Id       int    `json:"id"`
-	IsEdited bool   `json:"isEdited"`
-	Message  string `json:"message"`
-	Parent   int    `json:"parent"`
-	Thread   int    `json:"thread"`
-	Mpath    []int  `json:"mpath,ommitempty"`
+	Author   string    `json:"author"`
+	Created  time.Time `json:"created"`
+	Forum    string    `json:"forum"`
+	Id       int       `json:"id"`
+	IsEdited bool      `json:"isEdited"`
+	Message  string    `json:"message"`
+	Parent   int       `json:"parent"`
+	Thread   int       `json:"thread"`
+	Mpath    []int     `json:"mpath,ommitempty"`
 }
 
 type PostFull struct {
@@ -112,7 +113,7 @@ func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) Posts {
 
 func GetPostsSortedFlat(id int, limit int, since string, desc bool, db *database.DB) Posts {
 	var (
-		rows *sql.Rows
+		rows *pgx.Rows
 		err  error
 	)
 
@@ -189,7 +190,7 @@ func GetPostsSortedFlat(id int, limit int, since string, desc bool, db *database
 
 func GetPostsSortedTree(id int, limit int, since string, desc bool, db *database.DB) Posts {
 	var (
-		rows *sql.Rows
+		rows *pgx.Rows
 		err  error
 	)
 
@@ -249,7 +250,7 @@ func GetPostsSortedTree(id int, limit int, since string, desc bool, db *database
 
 func GetPostsSortedParentTree(id int, limit int, since string, desc bool, db *database.DB) Posts {
 	var (
-		rows *sql.Rows
+		rows *pgx.Rows
 		err  error
 	)
 	// sorted AS (SELECT * FROM post WHERE thread=B366PapXAi86r , pag AS (SELECT mpath FROM sorted WHERE parent=0 OFFSET $2 LIMIT 1)

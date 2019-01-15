@@ -14,23 +14,12 @@ type DatabaseInfo struct {
 }
 
 func (d *DatabaseInfo) Get(db *database.DB) {
-	rows, err := db.DataBase.Query("SELECT COUNT(*) FROM forum; SELECT COUNT(*) FROM post; SELECT COUNT(*) FROM thread; SELECT COUNT(*) FROM forum_user;")
-	defer rows.Close()
-	if err != nil {
-		beego.Warn(err)
-	}
-
-	rows.Next()
-	err = rows.Scan(&d.ForumCount)
-	rows.Next()
-	rows.Next()
-	err = rows.Scan(&d.PostCount)
-	rows.Next()
-	rows.Next()
-	err = rows.Scan(&d.ThreadCount)
-	rows.Next()
-	rows.Next()
-	err = rows.Scan(&d.UserCount)
+	err := db.DataBase.QueryRow(`
+		SELECT * FROM
+		(( SELECT COUNT(*) FROM forum) AS forums
+		CROSS JOIN (SELECT COUNT(*) FROM post) AS posts
+		CROSS JOIN (SELECT COUNT(*) FROM thread) AS threads
+		CROSS JOIN (SELECT COUNT(*) FROM forum_user) AS users);`).Scan(&d.ForumCount, &d.PostCount, &d.ThreadCount, &d.UserCount)
 
 	if err != nil {
 		beego.Warn(err)

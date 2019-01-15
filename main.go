@@ -15,7 +15,7 @@ import (
 func main() {
 
 	var db database.DB
-	db.ConectDB()
+	db.GetPool()
 	db.InitDB("database/init.sql")
 	defer db.DataBase.Close()
 

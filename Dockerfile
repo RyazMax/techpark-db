@@ -37,7 +37,7 @@ RUN echo "synchronous_commit = off" >> /etc/postgresql/$PGVER/main/postgresql.co
 EXPOSE 5432
 USER root
 # Add VOLUMEs to allow backup of config, logs and databases
-#VOLUME ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+VOLUME ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
 # Установка golang
 ENV GOVER 1.10

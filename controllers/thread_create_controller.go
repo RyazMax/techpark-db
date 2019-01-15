@@ -51,7 +51,8 @@ func (c *ThreadCreateController) Post() {
 		c.ServeJSON()
 		return
 	}
-	for i, _ := range posts {
+	beego.Info("POsts: ", len(posts), "ids : ", len(ids))
+	for i := range posts {
 		posts[i].Id = ids[i]
 		posts[i].Created = curTime
 		posts[i].Thread = thread.ID

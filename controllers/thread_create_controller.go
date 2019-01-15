@@ -38,7 +38,7 @@ func (c *ThreadCreateController) Post() {
 
 	json.Unmarshal(body, &posts)
 
-	posts, err = thread.AddPosts(posts, c.DB)
+	ids, curTime, err := thread.AddPosts(posts, c.DB)
 	//beego.Info("IN CONTROLL posts_len ", len(posts))
 	if err != nil && err.Error() == "No author" {
 		c.Ctx.Output.SetStatus(http.StatusNotFound)
@@ -50,6 +50,12 @@ func (c *ThreadCreateController) Post() {
 		c.Data["json"] = &models.Message{Message: err.Error()}
 		c.ServeJSON()
 		return
+	}
+	for i, _ := range posts {
+		posts[i].Id = ids[i]
+		posts[i].Created = curTime
+		posts[i].Thread = thread.ID
+		posts[i].Forum = thread.Forum
 	}
 
 	c.Ctx.Output.SetStatus(http.StatusCreated)

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
-	"github.com/lib/pq"
 
 	"github.com/astaxie/beego"
 )
@@ -101,8 +100,8 @@ func (t *Thread) GetPostsID(db *database.DB) (res []int) {
 	return
 }
 
-func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
-	result := make(Posts, 0)
+func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error) {
+	result := make([]int, 0)
 	curTime := time.Now()
 	//thread_ids := t.GetPostsID(db)
 	authors := make(map[string]bool)
@@ -118,11 +117,11 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 
 	tmp := GetUsersByNicks(&authors, db)
 	if len(tmp) != len(authors) {
-		return result, errors.New("No author")
+		return result, curTime, errors.New("No author")
 	}
 	parents_found := GetPostsByID(&parents, t.ID, db)
 	if len(parents_found) != len(parents) {
-		return result, errors.New("Parent in other thread")
+		return result, curTime, errors.New("Parent in other thread")
 	}
 
 	var query strings.Builder
@@ -139,32 +138,26 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		}
 		args = append(args, post.Author, post.Message, post.Parent, post.Forum, post.Thread, post.Created)
 	}
-	query.WriteString("RETURNING author,created,forum,id,isedited,msg,parent,thread;")
+	query.WriteString("RETURNING id;")
 	if len(posts) > 0 {
-		rows, err := db.DataBase.Query(query.String(), args...)
+		rows, _ := db.DataBase.Query(query.String(), args...)
 		defer rows.Close()
-		if err != nil {
+		/*if err != nil {
 			pqErr := err.(*pq.Error)
 			beego.Warn(pqErr.InternalQuery)
 			beego.Warn(pqErr.Error())
 			return posts, err
-		}
-		p := Post{}
+		}*/
+		var id int
 		for rows.Next() {
 
-			err := rows.Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
-			if err != nil {
-				beego.Warn(err)
-			}
-			result = append(result, p)
-		}
-		if len(result) == 0 {
-			beego.Info("ERR")
+			rows.Scan(&id)
+			result = append(result, id)
 		}
 	}
 
 	//beego.Info("In model ", len(result))
-	return result, nil
+	return result, curTime, nil
 }
 
 func GetThreadsSorted(slug string, limit int, since string, desc bool, db *database.DB) Threads {

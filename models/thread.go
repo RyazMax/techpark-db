@@ -152,7 +152,10 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		p := Post{}
 		for rows.Next() {
 
-			rows.Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
+			err := rows.Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
+			if err != nil {
+				beego.Warn(err)
+			}
 			result = append(result, p)
 		}
 		if len(result) == 0 {

@@ -42,7 +42,7 @@ func (db *DB) GetPool() {
 		MaxConnections: 50,
 	})
 	if err != nil {
-		beego.Error(err)
+		beego.Error("ERR", err)
 	}
 	db.DataBase = connPool
 }

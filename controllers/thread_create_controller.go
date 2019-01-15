@@ -53,7 +53,7 @@ func (c *ThreadCreateController) Post() {
 	}
 
 	c.Ctx.Output.SetStatus(http.StatusCreated)
-	beego.Info("OK")
+	//beego.Info("OK")
 	c.Data["json"] = &posts
 	c.ServeJSON()
 }

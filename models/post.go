@@ -77,39 +77,29 @@ func (p *Post) GetByID(id int, db *database.DB) bool {
 	return true
 }
 
-func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) Posts {
+func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) (res int) {
 	if len(*ids) == 0 {
-		return make(Posts, 0)
+		return 0
 	}
 	var query strings.Builder
-	query.WriteString("SELECT id FROM post WHERE (")
+	query.WriteString("SELECT COUNT(*) FROM post WHERE id in (")
 	var cnt int
 	for id := range *ids {
 		if cnt > 0 {
-			query.WriteString("OR ")
+			query.WriteString(", ")
 		}
 		cnt++
-		query.WriteString(fmt.Sprintf("id = %d ", id))
+		query.WriteString(fmt.Sprintf("%d", id))
 	}
 	query.WriteString(fmt.Sprintf(") AND thread = %d;", thread))
 
-	rows, err := db.DataBase.Query(query.String())
-	defer rows.Close()
+	beego.Info(query.String())
+	err := db.DataBase.QueryRow(query.String()).Scan(&res)
 	if err != nil {
 		beego.Warn(err)
-		return make(Posts, 0)
+		return 0
 	}
-	posts := make(Posts, 0)
-	for rows.Next() {
-		var p Post
-		err = rows.Scan(&p.Id)
-		if err != nil {
-			beego.Warn(err)
-			return nil
-		}
-		posts = append(posts, p)
-	}
-	return posts
+	return
 }
 
 func GetPostsSortedFlat(id int, limit int, since string, desc bool, db *database.DB) Posts {

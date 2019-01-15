@@ -120,7 +120,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 		return result, curTime, errors.New("No author")
 	}
 	parents_found := GetPostsByID(&parents, t.ID, db)
-	if len(parents_found) != len(parents) {
+	if parents_found != len(parents) {
 		return result, curTime, errors.New("Parent in other thread")
 	}
 

@@ -38,7 +38,9 @@ func (u *User) GetLike(db *database.DB) Users {
 	rows, err := db.DataBase.Query("select * from forum_user where nickname = $2 or email = $1;",
 		u.Email, u.Nickname)
 	if err != nil {
-		beego.Warn("IN get like ", err)
+		beego.Warn("IN get like ", err.Error())
+		beego.Warn(err.(*pgx.PgError).Detail)
+		beego.Warn(err.(*pgx.PgError).Message)
 	}
 	defer rows.Close()
 	users := make(Users, 0, 2)

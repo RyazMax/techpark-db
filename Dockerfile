@@ -11,6 +11,7 @@ ENV PASSWORD $PASSWORD
 # Установка postgresql
 #
 ENV PGVER 10
+RUN apt-get update
 RUN apt-get install -y postgresql-$PGVER
 
 # Run the rest of the commands as the ``postgres`` user created by the ``postgres-$PGVER`` package when it was ``apt-get installed``

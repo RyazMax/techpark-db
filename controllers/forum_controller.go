@@ -18,14 +18,7 @@ func (c *ForumController) Post() {
 	body := c.Ctx.Input.RequestBody
 	newForum := models.Forum{}
 
-	err := json.Unmarshal(body, &newForum)
-	if err != nil {
-		beego.Warn("Can not unmarshal body", err)
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
-		c.Data["json"] = &models.Message{Message: "Can not unmarshal"}
-		c.ServeJSON()
-		return
-	}
+	json.Unmarshal(body, &newForum)
 
 	owner := models.User{}
 	exist := owner.GetUserByNick(newForum.User, c.DB)

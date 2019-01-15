@@ -20,14 +20,7 @@ func (c *ForumSlugController) Post() {
 	body := c.Ctx.Input.RequestBody
 
 	newThread := models.Thread{}
-	err := json.Unmarshal(body, &newThread)
-	if err != nil {
-		beego.Warn("Can not unmarshal body", err)
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
-		c.Data["json"] = &models.Message{Message: "Can not unmarshal"}
-		c.ServeJSON()
-		return
-	}
+	json.Unmarshal(body, &newThread)
 
 	// Наличие юзера
 	owner := models.User{}

@@ -56,14 +56,7 @@ func (c *ThreadDetailsController) Post() {
 	}
 
 	updateThread := models.ThreadUpdate{}
-	err = json.Unmarshal(body, &updateThread)
-	if err != nil {
-		beego.Warn("Can not unmarshal body", err)
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
-		c.Data["json"] = &models.Message{Message: "Can not unmarshal"}
-		c.ServeJSON()
-		return
-	}
+	json.Unmarshal(body, &updateThread)
 
 	if updateThread.Message != "" {
 		thread.Message = updateThread.Message

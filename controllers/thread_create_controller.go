@@ -36,14 +36,7 @@ func (c *ThreadCreateController) Post() {
 
 	posts := models.Posts{}
 
-	err = json.Unmarshal(body, &posts)
-	if err != nil {
-		beego.Warn("Can not unmarshal body", err)
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
-		c.Data["json"] = &models.Message{Message: "Can not unmarshal"}
-		c.ServeJSON()
-		return
-	}
+	json.Unmarshal(body, &posts)
 
 	posts, err = thread.AddPosts(posts, c.DB)
 	if err != nil && err.Error() == "No author" {
@@ -57,12 +50,6 @@ func (c *ThreadCreateController) Post() {
 		c.ServeJSON()
 		return
 	}
-
-	// Обновление форума
-	/*forum := models.Forum{}
-	forum.GetBySlug(thread.Forum, c.DB)
-	forum.Posts += len(posts)
-	forum.Update(c.DB)*/
 
 	c.Ctx.Output.SetStatus(http.StatusCreated)
 	c.Data["json"] = &posts

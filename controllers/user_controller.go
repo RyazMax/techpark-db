@@ -20,29 +20,19 @@ func (c *UserController) Post() {
 	nickname := c.Ctx.Input.Param(":nickname")
 	body := c.Ctx.Input.RequestBody
 	newUser := &models.User{}
-	err := json.Unmarshal(body, newUser)
-	if err != nil {
-		beego.Warn("Can not unmarshal body", err)
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
-		c.Data["json"] = &models.Message{Message: "Can not unmarshal"}
-		c.ServeJSON()
-		return
-	}
+	json.Unmarshal(body, newUser)
 
 	newUser.Nickname = nickname
 	sameUsers := newUser.GetLike(c.DB)
 	if len(sameUsers) > 0 {
+		beego.Info(sameUsers)
 		c.Ctx.Output.SetStatus(http.StatusConflict)
 		c.Data["json"] = &sameUsers
 		c.ServeJSON()
 		return
 	}
 
-	err = newUser.Add(c.DB)
-	if err != nil {
-		beego.Error(err)
-		return
-	}
+	newUser.Add(c.DB)
 	c.Ctx.Output.SetStatus(http.StatusCreated)
 	c.Data["json"] = &newUser
 	c.ServeJSON()

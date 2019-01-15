@@ -30,13 +30,7 @@ func (c *PostController) Post() {
 
 	body := c.Ctx.Input.RequestBody
 	postUpdate := models.PostUpdate{}
-	err := json.Unmarshal(body, &postUpdate)
-	if err != nil {
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
-		c.Data["json"] = &models.Message{Message: "Can not unmarshal"}
-		c.ServeJSON()
-		return
-	}
+	json.Unmarshal(body, &postUpdate)
 
 	if postUpdate.Message != post.Message && postUpdate.Message != "" {
 		post.Message = postUpdate.Message

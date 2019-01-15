@@ -37,6 +37,9 @@ func (newUser *User) Add(db *database.DB) error {
 func (u *User) GetLike(db *database.DB) Users {
 	rows, err := db.DataBase.Query("select * from forum_user where nickname = $2 or email = $1;",
 		u.Email, u.Nickname)
+	if err != nil {
+		beego.Warn("IN get like ", err)
+	}
 	defer rows.Close()
 	users := make(Users, 0, 2)
 	for rows.Next() {
@@ -85,37 +88,6 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 		rows *pgx.Rows
 		err  error
 	)
-	/*
-		subQuery :=
-			`select u.* from forum_user u
-			JOIN
-			((select distinct author from thread WHERE LOWER(forum)=LOWER($1))
-			UNION
-			(select distinct author from post WHERE LOWER(forum)=LOWER($1))) as p ON nickname=p.author
-			ORDER BY LOWER(nickname) `
-		if desc {
-			subQuery += "DESC "
-		}
-		if since != "" {
-			query := "SELECT * FROM (" + subQuery + ") as sub WHERE LOWER(sub.nickname) "
-			if desc {
-				query += "< LOWER($2) "
-			} else {
-				query += "> LOWER($2) "
-			}
-			if limit != 0 {
-				rows, err = db.DataBase.Query(query+"LIMIT $3;", slug, since, limit)
-			} else {
-				rows, err = db.DataBase.Query(query+";", slug, since)
-			}
-		} else {
-			if limit != 0 {
-				rows, err = db.DataBase.Query(subQuery+"LIMIT $2;", slug, limit)
-			} else {
-				rows, err = db.DataBase.Query(subQuery, slug)
-			}
-		}*/
-
 	// Нет вложенного
 	/*subQuery :=
 	`select u.* from forum_user u

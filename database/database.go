@@ -39,7 +39,7 @@ func (db *DB) GetPool() {
 			Password: "docker",
 			Database: "docker",
 		},
-		MaxConnections: 60,
+		MaxConnections: 50,
 	})
 	if err != nil {
 		beego.Error(err)
@@ -54,9 +54,9 @@ func (db DB) InitDB(filename string) {
 	}
 
 	cmd := string(pd)
-	res, err := db.DataBase.Exec(cmd)
+	_, err = db.DataBase.Exec(cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(res)
+	beego.Info("Database inited")
 }

@@ -17,7 +17,7 @@ type ThreadVoteController struct {
 
 func (c *ThreadVoteController) Post() {
 	slugOrID := c.Ctx.Input.Param(":id")
-	id, err := strconv.Atoi(slugOrID)
+	id, _ := strconv.Atoi(slugOrID)
 	body := c.Ctx.Input.RequestBody
 
 	thread := models.Thread{}
@@ -35,14 +35,7 @@ func (c *ThreadVoteController) Post() {
 	}
 
 	vote := models.Vote{}
-	err = json.Unmarshal(body, &vote)
-	if err != nil {
-		beego.Warn("Can not unmarshal body", err)
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
-		c.Data["json"] = &models.Message{Message: "Can not unmarshal"}
-		c.ServeJSON()
-		return
-	}
+	json.Unmarshal(body, &vote)
 
 	author := models.User{}
 	exist = author.GetUserByNick(vote.Nickname, c.DB)

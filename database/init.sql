@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS user_in_forum CASCADE;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE IF NOT EXISTS forum_user (
-    email CITEXT unique,
+    email CITEXT,
     about text,
     fullname text,
     nickname CITEXT COLLATE "ucs_basic" primary key 

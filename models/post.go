@@ -93,7 +93,6 @@ func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) (res int) {
 	}
 	query.WriteString(fmt.Sprintf(") AND thread = %d;", thread))
 
-	beego.Info(query.String())
 	err := db.DataBase.QueryRow(query.String()).Scan(&res)
 	if err != nil {
 		beego.Warn(err)

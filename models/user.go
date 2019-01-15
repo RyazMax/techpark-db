@@ -143,37 +143,26 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 	return users
 }
 
-func GetUsersByNicks(nicks *map[string]bool, db *database.DB) Users {
+func GetUsersByNicks(nicks *map[string]bool, db *database.DB) (res int) {
 	if len(*nicks) == 0 {
-		return make(Users, 0)
+		return 0
 	}
 	var query strings.Builder
-	query.WriteString("SELECT * FROM forum_user WHERE ")
+	query.WriteString("SELECT COUNT (*) FROM forum_user WHERE nickname in (")
 	var cnt int
 	for name := range *nicks {
 		if cnt > 0 {
-			query.WriteString("OR ")
+			query.WriteString(", ")
 		}
 		cnt++
-		query.WriteString(fmt.Sprintf("nickname='%s' ", name))
+		query.WriteString(fmt.Sprintf("'%s' ", name))
 	}
-	query.WriteString(";")
+	query.WriteString(");")
 
-	rows, err := db.DataBase.Query(query.String())
-	defer rows.Close()
+	err := db.DataBase.QueryRow(query.String()).Scan(&res)
 	if err != nil {
 		beego.Warn(err)
-		return make(Users, 0)
+		return 0
 	}
-	users := make(Users, 0)
-	for rows.Next() {
-		var u User
-		err = rows.Scan(&u.Email, &u.About, &u.Fullname, &u.Nickname)
-		if err != nil {
-			beego.Warn(err)
-			return nil
-		}
-		users = append(users, u)
-	}
-	return users
+	return res
 }

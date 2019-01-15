@@ -116,7 +116,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 	}
 
 	tmp := GetUsersByNicks(&authors, db)
-	if len(tmp) != len(authors) {
+	if tmp != len(authors) {
 		return result, curTime, errors.New("No author")
 	}
 	parents_found := GetPostsByID(&parents, t.ID, db)

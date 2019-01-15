@@ -33,20 +33,11 @@ func (f *Forum) Update(db *database.DB) {
 }
 
 func (f *Forum) GetBySlug(slug string, db *database.DB) (exist bool) {
-	rows, err := db.DataBase.Query("select * from forum where slug = $1;", slug)
-	defer rows.Close()
+	err := db.DataBase.QueryRow("select * from forum where slug = $1;", slug).
+		Scan(&f.Posts, &f.Slug, &f.Threads, &f.Title, &f.User)
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 
-	for rows.Next() {
-		exist = true
-		err = rows.Scan(&f.Posts, &f.Slug, &f.Threads, &f.Title, &f.User)
-		if err != nil {
-			log.Println(err)
-			return false
-		}
-	}
-	return
+	return true
 }

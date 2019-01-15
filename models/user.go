@@ -53,19 +53,12 @@ func (u *User) GetLike(db *database.DB) Users {
 }
 
 func (u *User) GetUserByNick(nickname string, db *database.DB) (exist bool) {
-	rows, err := db.DataBase.Query("select * from forum_user where nickname = $1;", nickname)
-	defer rows.Close()
+	err := db.DataBase.QueryRow("select * from forum_user where nickname = $1;", nickname).
+		Scan(&u.Email, &u.About, &u.Fullname, &u.Nickname)
 	if err != nil {
-		log.Fatal(err)
+		return false
 	}
-	for rows.Next() {
-		exist = true
-		err = rows.Scan(&u.Email, &u.About, &u.Fullname, &u.Nickname)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	return
+	return true
 }
 
 func (u *User) Update(db *database.DB) error {

@@ -57,7 +57,7 @@ FOR EACH ROW EXECUTE PROCEDURE incThreads();
 
 CREATE TABLE IF NOT EXISTS post (
     author CITEXT,
-    created TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    created TIMESTAMP WITH TIME ZONE,
     forum CITEXT,
     id BIGSERIAL primary key,
     isEdited BOOL DEFAULT false, 

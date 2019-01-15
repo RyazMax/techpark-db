@@ -157,7 +157,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) (Posts, error) {
 		}
 	}
 
-	beego.Info(result)
+	beego.Info("In model ", len(result))
 	return result, nil
 }
 

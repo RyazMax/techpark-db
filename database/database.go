@@ -54,9 +54,10 @@ func (db DB) InitDB(filename string) {
 	}
 
 	cmd := string(pd)
-	_, err = db.DataBase.Exec(cmd)
+	res, err := db.DataBase.Exec(cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
+	beego.Info(res.RowsAffected())
 	beego.Info("Database inited")
 }

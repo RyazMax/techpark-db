@@ -16,7 +16,7 @@ func main() {
 
 	var db database.DB
 	db.GetPool()
-	db.InitDB("database/init.sql")
+	//db.InitDB("database/init.sql")
 	//defer db.DataBase.Close()
 
 	routers.InitRouter(&db)

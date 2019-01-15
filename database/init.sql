@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS forum_user (
     email CITEXT UNIQUE, 
     about text,
     fullname text,
-    nickname CITEXT primary key 
+    nickname CITEXT COLLATE "ucs_basic" primary key 
 );
 
 CREATE TABLE IF NOT EXISTS forum (

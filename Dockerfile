@@ -22,6 +22,7 @@ USER postgres
 RUN /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
     createdb -O docker docker &&\
+    psql ./database/init.sql &&\
     /etc/init.d/postgresql stop
 
 # Adjust PostgreSQL configuration so that remote connections to the
@@ -35,9 +36,10 @@ RUN echo "synchronous_commit = off" >> /etc/postgresql/$PGVER/main/postgresql.co
 
 # Expose the PostgreSQL port
 EXPOSE 5432
-USER root
 # Add VOLUMEs to allow backup of config, logs and databases
 VOLUME ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+
+USER root
 
 # Установка golang
 ENV GOVER 1.10

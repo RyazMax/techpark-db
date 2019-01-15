@@ -25,7 +25,7 @@ func (c *UserController) Post() {
 	newUser.Nickname = nickname
 	sameUsers := newUser.GetLike(c.DB)
 	if len(sameUsers) > 0 {
-		beego.Info(sameUsers)
+		//beego.Info(sameUsers)
 		c.Ctx.Output.SetStatus(http.StatusConflict)
 		c.Data["json"] = &sameUsers
 		c.ServeJSON()

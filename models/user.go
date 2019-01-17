@@ -46,7 +46,7 @@ func AddUsersToForum(forum string, users *map[string]bool, db *database.DB) {
 		query.WriteString(fmt.Sprintf("('%s', '%s')", nick, forum))
 	}
 	query.WriteString("ON CONFLICT DO NOTHING;")
-	_, err := db.DataBase.Exec(query.String())
+	db.DataBase.Exec(query.String())
 }
 
 func (u *User) GetLike(db *database.DB) Users {

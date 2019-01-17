@@ -47,9 +47,6 @@ func AddUsersToForum(forum string, users *map[string]bool, db *database.DB) {
 	}
 	query.WriteString("ON CONFLICT DO NOTHING;")
 	_, err := db.DataBase.Exec(query.String())
-	if err != nil {
-		beego.Warn(err)
-	}
 }
 
 func (u *User) GetLike(db *database.DB) Users {

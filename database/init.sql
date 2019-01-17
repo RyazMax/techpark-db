@@ -199,7 +199,7 @@ DROP INDEX IF EXISTS post_mpath_desc_idx;
 DROP INDEX IF EXISTS post_hash_id;
 
 CREATE INDEX IF NOT EXISTS forum_user_nickname_idx ON forum_user(nickname);
-CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(nickname, email);
+--CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(nickname, email);
 
 CREATE INDEX IF NOT EXISTS thread_slug_idx on thread (slug);
 CREATE INDEX IF NOT EXISTS thread_forum_id on thread (forum);

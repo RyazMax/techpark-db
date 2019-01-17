@@ -125,22 +125,23 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 		return result, curTime, errors.New("Parent in other thread")
 	}
 
-	var query strings.Builder
-	args := make([]interface{}, 0)
-	query.WriteString("insert into post(author,msg,parent,forum,thread,created) values ")
-	for i, post := range posts {
-		post.Thread = t.ID
-		post.Forum = t.Forum
-		post.Created = curTime
-		if i != 0 {
-			query.WriteString(fmt.Sprintf(",($%d, $%d, $%d, $%d, $%d, $%d) ", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6))
-		} else {
-			query.WriteString(fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d) ", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6))
-		}
-		args = append(args, post.Author, post.Message, post.Parent, post.Forum, post.Thread, post.Created)
-	}
-	query.WriteString("RETURNING id;")
 	if len(posts) > 0 {
+		var query strings.Builder
+		args := make([]interface{}, 0, len(posts)*6)
+		query.Grow(80 + len(posts)*35)
+		query.WriteString("insert into post(author,msg,parent,forum,thread,created) values ")
+		for i, post := range posts {
+			post.Thread = t.ID
+			post.Forum = t.Forum
+			post.Created = curTime
+			if i != 0 {
+				query.WriteString(fmt.Sprintf(",($%d, $%d, $%d, $%d, $%d, $%d) ", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6))
+			} else {
+				query.WriteString(fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d) ", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6))
+			}
+			args = append(args, post.Author, post.Message, post.Parent, post.Forum, post.Thread, post.Created)
+		}
+		query.WriteString("RETURNING id;")
 		rows, err := db.DataBase.Query(query.String(), args...)
 		defer rows.Close()
 		if err != nil {

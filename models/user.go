@@ -37,16 +37,21 @@ func (newUser *User) Add(db *database.DB) error {
 
 func AddUsersToForum(forum string, users *map[string]bool, db *database.DB) {
 	var query strings.Builder
+	query.Grow(80 + 11*len(*users))
 	query.WriteString("INSERT into user_in_forum(nickname, forum) VALUES ")
 	var cnt int
+	args := make([]interface{}, 1, len(*users))
+	args[0] = forum
 	for nick := range *users {
 		if cnt > 0 {
 			query.WriteString(", ")
 		}
-		query.WriteString(fmt.Sprintf("('%s', '%s')", nick, forum))
+		query.WriteString(fmt.Sprintf("($%d, $%d)", cnt+2, 1))
+		args = append(args, nick)
+		cnt++
 	}
 	query.WriteString("ON CONFLICT DO NOTHING;")
-	db.DataBase.Exec(query.String())
+	db.DataBase.Exec(query.String(), args...)
 }
 
 func (u *User) GetLike(db *database.DB) Users {
@@ -163,21 +168,30 @@ func GetUsersByNicks(nicks *map[string]bool, db *database.DB) (res int) {
 		return 0
 	}
 	var query strings.Builder
-	query.WriteString("SELECT COUNT (*) FROM forum_user WHERE nickname in (")
+	args := make([]interface{}, 0, len(*nicks))
+	query.Grow(100 + len(*nicks)*2)
+	query.WriteString("SELECT nickname FROM forum_user WHERE nickname in (")
 	var cnt int
 	for name := range *nicks {
 		if cnt > 0 {
 			query.WriteString(", ")
 		}
 		cnt++
-		query.WriteString(fmt.Sprintf("'%s' ", name))
+		query.WriteString(fmt.Sprintf("$%d ", cnt))
+		args = append(args, name)
 	}
 	query.WriteString(");")
 
-	err := db.DataBase.QueryRow(query.String()).Scan(&res)
+	rows, err := db.DataBase.Query(query.String(), args...)
+	defer rows.Close()
 	if err != nil {
 		beego.Warn(err)
 		return 0
+	}
+	var tmp string
+	for rows.Next() {
+		rows.Scan(&tmp)
+		res++
 	}
 	return res
 }

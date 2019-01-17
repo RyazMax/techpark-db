@@ -101,6 +101,9 @@ func (t *Thread) GetPostsID(db *database.DB) (res []int) {
 }
 
 func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error) {
+
+	tx, _ := db.DataBase.Begin()
+	defer tx.Rollback()
 	result := make([]int, 0, len(posts))
 	curTime := time.Now()
 	//thread_ids := t.GetPostsID(db)
@@ -161,6 +164,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 		beego.Info("LEn posts ", len(posts), len(result), "NOT MATCH")
 		//beego.Info("Query: ", query.String())
 	}
+	tx.Commit()
 	return result, curTime, nil
 }
 

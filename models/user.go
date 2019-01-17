@@ -35,6 +35,23 @@ func (newUser *User) Add(db *database.DB) error {
 	return nil
 }
 
+func AddUsersToForum(forum string, users *map[string]bool, db *database.DB) {
+	var query strings.Builder
+	query.WriteString("INSERT into user_in_forum(nickname, forum) VALUES ")
+	var cnt int
+	for nick := range *users {
+		if cnt > 0 {
+			query.WriteString(", ")
+		}
+		query.WriteString(fmt.Sprintf("('%s', '%s')", nick, forum))
+	}
+	query.WriteString("ON CONFLICT DO NOTHING;")
+	_, err := db.DataBase.Exec(query.String())
+	if err != nil {
+		beego.Warn(err)
+	}
+}
+
 func (u *User) GetLike(db *database.DB) Users {
 	rows, err := db.DataBase.Query("select * from forum_user where nickname = $2 or email = $1;",
 		u.Email, u.Nickname)

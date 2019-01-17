@@ -159,6 +159,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 			rows.Scan(&id)
 			result = append(result, id)
 		}
+		AddUsersToForum(t.Forum, &authors, db)
 	}
 
 	if len(posts) != len(result) {

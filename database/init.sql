@@ -178,9 +178,9 @@ $$ LANGUAGE PLPGSQL;
 
 DROP TRIGGER IF EXISTS addUserOnPostTRIG on post;
 
-CREATE TRIGGER addUserOnPostTRIG
-AFTER INSERT ON post
-FOR EACH ROW EXECUTE PROCEDURE addUserOnPost();
+--CREATE TRIGGER addUserOnPostTRIG
+--AFTER INSERT ON post
+--FOR EACH ROW EXECUTE PROCEDURE addUserOnPost();
  
 
 DROP INDEX IF EXISTS user_in_forum_idx;
@@ -206,7 +206,7 @@ CREATE INDEX IF NOT EXISTS thread_forum_id on thread (forum);
 CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (forum, created);
 CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (nickname, thread);
 
---CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread, id);
+CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread, id);
 --CREATE INDEX IF NOT EXISTS posts_thread_created_idx ON post(thread, created);
 --CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]))
 --CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));

@@ -23,6 +23,7 @@ type UserUpdate struct {
 	Fullname string `json:"fullname"`
 }
 
+//easyjson:json
 type Users []User
 
 func (newUser *User) Add(db *database.DB) error {

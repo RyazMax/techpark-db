@@ -29,6 +29,7 @@ type ThreadUpdate struct {
 	Title   string `json:"title"`
 }
 
+//easyjson:json
 type Threads []Thread
 
 func (t *Thread) Add(db *database.DB) {

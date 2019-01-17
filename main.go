@@ -19,6 +19,7 @@ func main() {
 	db.InitDB("database/init.sql")
 	db.DataBase.Close()
 	db.GetPool()
+
 	//db.InitDB("database/init.sql")
 	//defer db.DataBase.Close()
 

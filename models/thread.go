@@ -116,10 +116,10 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 		}
 	}
 
-	tmp := GetUsersByNicks(&authors, db)
+	/*tmp := GetUsersByNicks(&authors, db)
 	if tmp != len(authors) {
 		return result, curTime, errors.New("No author")
-	}
+	}*/
 	parents_found := GetPostsByID(&parents, t.ID, db)
 	if parents_found != len(parents) {
 		return result, curTime, errors.New("Parent in other thread")
@@ -149,7 +149,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 			beego.Warn(pqErr.InternalQuery)
 			beego.Warn(pqErr.Error())*/
 			beego.Warn(err)
-			return nil, curTime, err
+			return result, curTime, errors.New("Unexpected")
 		}
 		var id int
 		for rows.Next() {
@@ -157,6 +157,10 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 			rows.Scan(&id)
 			result = append(result, id)
 		}
+		if rows.Err() != nil {
+			return result, curTime, errors.New("No author")
+		}
+
 		AddUsersToForum(t.Forum, &authors, db)
 	}
 

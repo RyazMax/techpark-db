@@ -159,6 +159,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 
 	if len(posts) != len(result) {
 		beego.Info("LEn posts ", len(posts), len(result), "NOT MATCH")
+		beego.Info("Query: ", query.String())
 	}
 	return result, curTime, nil
 }

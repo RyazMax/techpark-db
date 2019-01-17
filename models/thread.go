@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
-	"github.com/lib/pq"
 
 	"github.com/astaxie/beego"
 )
@@ -144,9 +143,10 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 		rows, err := db.DataBase.Query(query.String(), args...)
 		defer rows.Close()
 		if err != nil {
-			pqErr := err.(*pq.Error)
+			/*pqErr := err.(*pq.Error)
 			beego.Warn(pqErr.InternalQuery)
-			beego.Warn(pqErr.Error())
+			beego.Warn(pqErr.Error())*/
+			beego.Warn(err)
 			return nil, curTime, err
 		}
 		var id int
@@ -159,7 +159,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 
 	if len(posts) != len(result) {
 		beego.Info("LEn posts ", len(posts), len(result), "NOT MATCH")
-		beego.Info("Query: ", query.String())
+		//beego.Info("Query: ", query.String())
 	}
 	return result, curTime, nil
 }

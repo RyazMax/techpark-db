@@ -82,7 +82,7 @@ func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) (res int) {
 		return 0
 	}
 	var query strings.Builder
-	query.WriteString("SELECT COUNT(*) FROM post WHERE id in (")
+	query.WriteString("SELECT id FROM post WHERE id in (")
 	var cnt int
 	for id := range *ids {
 		if cnt > 0 {
@@ -93,10 +93,16 @@ func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) (res int) {
 	}
 	query.WriteString(fmt.Sprintf(") AND thread = %d;", thread))
 
-	err := db.DataBase.QueryRow(query.String()).Scan(&res)
+	rows, err := db.DataBase.Query(query.String())
+	defer rows.Close()
 	if err != nil {
 		beego.Warn(err)
 		return 0
+	}
+	var tmp int
+	for rows.Next() {
+		rows.Scan(&tmp)
+		res++
 	}
 	return
 }

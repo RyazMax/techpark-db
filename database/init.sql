@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS forum_user (
 );
 
 CREATE TABLE IF NOT EXISTS forum (
-    posts BIGINT,
+    posts INTEGER,
     slug CITEXT primary key,
     threads INTEGER,
     title text,
@@ -28,12 +28,12 @@ CREATE TABLE IF NOT EXISTS thread (
     author CITEXT,
     created TIMESTAMP WITH TIME ZONE DEFAULT now(),
     forum CITEXT,
-    id BIGSERIAL primary key,
+    id SERIAL primary key,
     isEdited BOOL DEFAULT false, 
     Msg text,
     slug CITEXT DEFAULT NULL,
     title text,
-    votes BIGINT DEFAULT 0,
+    votes INTEGER DEFAULT 0,
     
     FOREIGN KEY(author) REFERENCES forum_user(nickname),
     FOREIGN KEY(forum) REFERENCES forum(slug)
@@ -59,12 +59,12 @@ CREATE TABLE IF NOT EXISTS post (
     author CITEXT,
     created TIMESTAMP WITH TIME ZONE,
     forum CITEXT,
-    id BIGSERIAL primary key,
+    id SERIAL primary key,
     isEdited BOOL DEFAULT false, 
     Msg text,
-    parent BIGSERIAL,
-    thread BIGSERIAL,
-    mpath BIGINT ARRAY,
+    parent INTEGER,
+    thread INTEGER,
+    mpath INTEGER ARRAY,
 
     FOREIGN KEY(author) REFERENCES forum_user(nickname),
     FOREIGN KEY(forum) REFERENCES forum(slug),
@@ -86,9 +86,9 @@ CREATE TRIGGER incPostsOnInsertPost
 AFTER INSERT ON post
 FOR EACH ROW EXECUTE PROCEDURE incPosts();
 
+DROP FUNCTION IF EXISTS getMpath();
 
-
-CREATE OR REPLACE FUNCTION getMpath(BIGINT) RETURNS BIGINT ARRAY
+CREATE OR REPLACE FUNCTION getMpath(INTEGER) RETURNS INTEGER ARRAY
     AS 'SELECT mpath FROM post WHERE post.id = $1;'
     LANGUAGE SQL
     RETURNS NULL ON NULL INPUT;
@@ -112,7 +112,7 @@ CREATE TRIGGER addPathOnInsertPost
 CREATE TABLE IF NOT EXISTS vote (
     nickname CITEXT,
     voice SMALLINT,
-    thread BIGINT,
+    thread INTEGER,
 
     FOREIGN KEY(nickname) REFERENCES forum_user(nickname),
     FOREIGN KEY(thread) REFERENCES thread(id),

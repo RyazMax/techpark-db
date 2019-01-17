@@ -283,7 +283,7 @@ func GetPostsSortedParentTree(id int, limit int, since string, desc bool, db *da
 			query += " > "
 		}
 
-		query += " (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::bigint[])) OR mpath[1] = (SELECT mpath[1] FROM pag) OR (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::bigint[])) = ARRAY[]::bigint[];"
+		query += " (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::integer[])) OR mpath[1] = (SELECT mpath[1] FROM pag) OR (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::integer[])) = ARRAY[]::integer[];"
 		if since != "" {
 			rows, err = db.DataBase.Query(query, id, since, limit-1)
 		} else {

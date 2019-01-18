@@ -75,11 +75,15 @@ func ForumSlugThreads(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	var desc bool
+	descString := string(ctx.QueryArgs().Peek("desc"))
+	if descString == "true" {
+		desc = true
+	}
 	limit := ctx.QueryArgs().GetUintOrZero("limit")
 	//if err != nil {
 	//	log.Warn(err)
 	//}
-	desc := ctx.QueryArgs().GetBool("desc")
 	//if err != nil {
 	//	log.Warn(err)
 	//}
@@ -100,7 +104,11 @@ func ForumSlugUsers(ctx *fasthttp.RequestCtx) {
 
 	limit := ctx.QueryArgs().GetUintOrZero("limit")
 
-	desc := ctx.QueryArgs().GetBool("desc")
+	var desc bool
+	descString := string(ctx.QueryArgs().Peek("desc"))
+	if descString == "true" {
+		desc = true
+	}
 
 	since := string(ctx.QueryArgs().Peek("since"))
 	users := models.GetUsersSorted(slug, limit, since, desc, db)

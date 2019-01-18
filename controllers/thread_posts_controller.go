@@ -25,7 +25,11 @@ func ThreadGetPosts(ctx *fasthttp.RequestCtx) {
 	}
 
 	limit := ctx.QueryArgs().GetUintOrZero("limit")
-	desc := ctx.QueryArgs().GetBool("desc")
+	var desc bool
+	descString := string(ctx.QueryArgs().Peek("desc"))
+	if descString == "true" {
+		desc = true
+	}
 	since := string(ctx.QueryArgs().Peek("since"))
 	sortType := string(ctx.QueryArgs().Peek("sort"))
 	if sortType == "" {

@@ -105,15 +105,16 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 		err  error
 	)
 	var query strings.Builder
-	query.WriteString(`select u.* from forum_user u JOIN user_in_forum uf ON u.nickname=uf.nickname where forum=$1 `)
+	query.WriteString(`select u.* from forum_user u JOIN (select nickname as n from user_in_forum uf WhERE forum=$1 `)
 	if since != "" {
-		query.WriteString("AND u.nickname ")
+		query.WriteString("AND uf.nickname ")
 		if desc {
 			query.WriteString("< $2 ")
 		} else {
 			query.WriteString("> $2 ")
 		}
-		query.WriteString("GROUP BY u.nickname ORDER BY u.nickname ")
+		query.WriteString(") as sub on u.nickname=n ")
+		query.WriteString("ORDER BY u.nickname ")
 		if desc {
 			query.WriteString("DESC ")
 		}
@@ -125,6 +126,8 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 			rows, err = db.DataBase.Query(query.String(), slug, since)
 		}
 	} else {
+		query.WriteString("AND uf.nickname > '' ")
+		query.WriteString(") as sub on u.nickname=n ")
 		query.WriteString("ORDER BY u.nickname ")
 		if desc {
 			query.WriteString("DESC ")
@@ -138,7 +141,6 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 		}
 	}
 	defer rows.Close()
-
 	users := make(Users, 0)
 	for rows.Next() {
 		var u User

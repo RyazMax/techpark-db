@@ -157,12 +157,12 @@ FOR EACH ROW EXECUTE PROCEDURE incVotesUpd();
 
 ---------------------------------------------------------------------------------------
 CREATE TABLE user_in_forum (
-    nickname CITEXT NOT NULL,
+    nickname CITEXT COLLATE "ucs_basic" NOT NULL,
     forum CITEXT NOT NULL,
 
     FOREIGN KEY(nickname) REFERENCES forum_user(nickname),
     FOREIGN KEY(forum) REFERENCES forum(slug),
-    PRIMARY KEY(nickname, forum)
+    PRIMARY KEY(forum, nickname)
 );
 
 

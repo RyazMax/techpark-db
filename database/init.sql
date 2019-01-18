@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS thread (
 );
 
 CREATE INDEX IF NOT EXISTS thread_slug_idx on thread(slug);
+CREATE INDEX IF NOT EXISTS thread_forum_created_idx on thread(forum, created);
 
 
 CREATE OR REPLACE FUNCTION incThreads() RETURNS TRIGGER AS

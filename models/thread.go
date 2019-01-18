@@ -116,10 +116,6 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 		}
 	}
 
-	/*tmp := GetUsersByNicks(&authors, db)
-	if tmp != len(authors) {
-		return result, curTime, errors.New("No author")
-	}*/
 	parents_found := GetPostsByID(&parents, t.ID, db)
 	if parents_found != len(parents) {
 		return result, curTime, errors.New("Parent in other thread")
@@ -170,31 +166,7 @@ func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error
 func GetThreadsSorted(slug string, limit int, since string, desc bool, db *database.DB) Threads {
 	var (
 		rows *pgx.Rows
-		err  error
 	)
-	/*subQuery := "SELECT * FROM THREAD WHERE LOWER(FORUM) = LOWER($1) ORDER BY created "
-	if desc {
-		subQuery += "DESC "
-	}
-	if since != "" {
-		query := "SELECT * FROM (" + subQuery + ") as sub WHERE sub.created "
-		if desc {
-			query += "<= $2 "
-		} else {
-			query += ">= $2 "
-		}
-		if limit != 0 {
-			rows, err = db.DataBase.Query(query+"LIMIT $3;", slug, since, limit)
-		} else {
-			rows, err = db.DataBase.Query(query+";", slug, since)
-		}
-	} else {
-		if limit != 0 {
-			rows, err = db.DataBase.Query(subQuery+"LIMIT $2;", slug, limit)
-		} else {
-			rows, err = db.DataBase.Query(subQuery, slug)
-		}
-	}*/
 
 	// Исправлена вложенность
 	var subQuery strings.Builder
@@ -212,10 +184,10 @@ func GetThreadsSorted(slug string, limit int, since string, desc bool, db *datab
 		}
 		if limit != 0 {
 			subQuery.WriteString("LIMIT $3;")
-			rows, err = db.DataBase.Query(subQuery.String(), slug, since, limit)
+			rows, _ = db.DataBase.Query(subQuery.String(), slug, since, limit)
 		} else {
 			subQuery.WriteString(";")
-			rows, err = db.DataBase.Query(subQuery.String(), slug, since)
+			rows, _ = db.DataBase.Query(subQuery.String(), slug, since)
 		}
 	} else {
 		subQuery.WriteString("ORDER BY created ")
@@ -224,24 +196,16 @@ func GetThreadsSorted(slug string, limit int, since string, desc bool, db *datab
 		}
 		if limit != 0 {
 			subQuery.WriteString("LIMIT $2;")
-			rows, err = db.DataBase.Query(subQuery.String(), slug, limit)
+			rows, _ = db.DataBase.Query(subQuery.String(), slug, limit)
 		} else {
-			rows, err = db.DataBase.Query(subQuery.String(), slug)
+			rows, _ = db.DataBase.Query(subQuery.String(), slug)
 		}
 	}
 	defer rows.Close()
-	if err != nil {
-		beego.Warn(err)
-		return nil
-	}
 	threads := make(Threads, 0)
 	for rows.Next() {
 		var t Thread
-		err = rows.Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
-		if err != nil {
-			beego.Warn(err)
-			return nil
-		}
+		rows.Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 		threads = append(threads, t)
 	}
 	return threads

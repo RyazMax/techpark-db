@@ -100,71 +100,45 @@ func GetPostsSortedFlat(id int, limit int, since string, desc bool, db *database
 		rows *pgx.Rows
 		err  error
 	)
-
-	/*
-		subQuery := "SELECT * FROM post WHERE thread = $1 ORDER BY created, id "
-		if desc {
-			subQuery += "DESC "
-		}
-		if since != "" {
-			query := "SELECT * FROM (" + subQuery + ") as sub WHERE sub.id "
-			if desc {
-				query += "< $2 "
-			} else {
-				query += "> $2 "
-			}
-			if limit != 0 {
-				rows, err = db.DataBase.Query(query+"LIMIT $3;", id, since, limit)
-			} else {
-				rows, err = db.DataBase.Query(query+";", id, since)
-			}
-		} else {
-			if limit != 0 {
-				rows, err = db.DataBase.Query(subQuery+"LIMIT $2;", id, limit)
-			} else {
-				rows, err = db.DataBase.Query(subQuery, id)
-			}
-		}*/
-
-	subQuery := "SELECT author,created,forum,id,isedited,msg,parent,thread FROM post WHERE thread = $1"
+	var subQuery strings.Builder
+	subQuery.WriteString("SELECT author,created,forum,id,isedited,msg,parent,thread FROM post WHERE thread = $1")
 	if since != "" {
-		subQuery += " AND id "
+		subQuery.WriteString(" AND id ")
 		if desc {
-			subQuery += "< $2 "
+			subQuery.WriteString("< $2 ")
 		} else {
-			subQuery += "> $2 "
+			subQuery.WriteString("> $2 ")
 		}
-		subQuery += "ORDER BY id "
+		subQuery.WriteString("ORDER BY id ")
 		if desc {
-			subQuery += "DESC "
+			subQuery.WriteString("DESC ")
 		}
 		if limit != 0 {
-			rows, err = db.DataBase.Query(subQuery+"LIMIT $3;", id, since, limit)
+			subQuery.WriteString("LIMIT $3;")
+			rows, err = db.DataBase.Query(subQuery.String(), id, since, limit)
 		} else {
-			rows, err = db.DataBase.Query(subQuery+";", id, since)
+			subQuery.WriteString(";")
+			rows, err = db.DataBase.Query(subQuery.String(), id, since)
 		}
 	} else {
-		subQuery += "ORDER BY id "
+		subQuery.WriteString("ORDER BY id ")
 		if desc {
-			subQuery += "DESC "
+			subQuery.WriteString("DESC ")
 		}
 		if limit != 0 {
-			rows, err = db.DataBase.Query(subQuery+"LIMIT $2;", id, limit)
+			subQuery.WriteString("LIMIT $2;")
+			rows, err = db.DataBase.Query(subQuery.String(), id, limit)
 		} else {
-			rows, err = db.DataBase.Query(subQuery, id)
+			subQuery.WriteString(";")
+			rows, err = db.DataBase.Query(subQuery.String(), id)
 		}
 	}
 	defer rows.Close()
-	if err != nil {
-		beego.Warn(err)
-		return nil
-	}
 	posts := make(Posts, 0)
 	for rows.Next() {
 		var t Post
 		err = rows.Scan(&t.Author, &t.Created, &t.Forum, &t.Id, &t.IsEdited, &t.Message, &t.Parent, &t.Thread)
 		if err != nil {
-			beego.Warn(err)
 			return nil
 		}
 		posts = append(posts, t)
@@ -178,53 +152,50 @@ func GetPostsSortedTree(id int, limit int, since string, desc bool, db *database
 		err  error
 	)
 
-	query := `
-	SELECT author, created,forum,id,isedited,msg,parent,thread FROM post WHERE thread=$1 `
+	var query strings.Builder
 	if since != "" {
-		query = "WITH since AS (SELECT mpath FROM post WHERE id=$2) " + query
-		query += "AND mpath "
+		query.WriteString("WITH since AS (SELECT mpath FROM post WHERE id=$2) ")
+	}
+	query.WriteString(`
+	SELECT author, created,forum,id,isedited,msg,parent,thread FROM post WHERE thread=$1 `)
+	if since != "" {
+		query.WriteString("AND mpath ")
 		if desc {
-			query += "< (SELECT mpath FROM since) "
+			query.WriteString("< (SELECT mpath FROM since) ")
 		} else {
-			query += "> (SELECT mpath FROM since) "
+			query.WriteString("> (SELECT mpath FROM since) ")
 		}
-		query += "ORDER BY mpath "
+		query.WriteString("ORDER BY mpath ")
 		if desc {
-			query += "DESC"
+			query.WriteString("DESC")
 		}
 		if limit != 0 {
-			query += " LIMIT $3;"
-			rows, err = db.DataBase.Query(query, id, since, limit)
+			query.WriteString(" LIMIT $3;")
+			rows, err = db.DataBase.Query(query.String(), id, since, limit)
 		} else {
-			query += ";"
-			rows, err = db.DataBase.Query(query, id, since)
+			query.WriteString(";")
+			rows, err = db.DataBase.Query(query.String(), id, since)
 		}
 	} else {
-		query += "ORDER BY mpath "
+		query.WriteString("ORDER BY mpath ")
 		if desc {
-			query += "DESC"
+			query.WriteString("DESC")
 		}
-		//query += ",mpath[2:] "
 		if limit != 0 {
-			query += " LIMIT $2;"
-			rows, err = db.DataBase.Query(query, id, limit)
+			query.WriteString(" LIMIT $2;")
+			rows, err = db.DataBase.Query(query.String(), id, limit)
 		} else {
-			query += ";"
-			rows, err = db.DataBase.Query(query, id)
+			query.WriteString(";")
+			rows, err = db.DataBase.Query(query.String(), id)
 		}
 	}
 
 	defer rows.Close()
-	if err != nil {
-		beego.Warn(err)
-		return nil
-	}
 	posts := make(Posts, 0)
 	for rows.Next() {
 		var t Post
 		err = rows.Scan(&t.Author, &t.Created, &t.Forum, &t.Id, &t.IsEdited, &t.Message, &t.Parent, &t.Thread)
 		if err != nil {
-			beego.Warn(err)
 			return nil
 		}
 		posts = append(posts, t)
@@ -234,69 +205,67 @@ func GetPostsSortedTree(id int, limit int, since string, desc bool, db *database
 
 func GetPostsSortedParentTree(id int, limit int, since string, desc bool, db *database.DB) Posts {
 	var (
-		rows *pgx.Rows
-		err  error
+		rows  *pgx.Rows
+		err   error
+		query strings.Builder
 	)
-	// sorted AS (SELECT * FROM post WHERE thread=B366PapXAi86r , pag AS (SELECT mpath FROM sorted WHERE parent=0 OFFSET $2 LIMIT 1)
-	query := `
-	sorted AS (SELECT * FROM post WHERE thread=$1 `
+	query.WriteString("WITH ")
 	if since != "" {
-		query = "since AS (SELECT mpath FROM post WHERE id=$2), " + query
-		query += "AND mpath[1] "
+		query.WriteString("since AS (SELECT mpath FROM post WHERE id=$2), ")
+	}
+	query.WriteString(`
+	sorted AS (SELECT * FROM post WHERE thread=$1 `)
+	if since != "" {
+		query.WriteString("AND mpath[1] ")
 		if desc {
-			query += "< (SELECT mpath[1] FROM since) "
+			query.WriteString("< (SELECT mpath[1] FROM since) ")
 		} else {
-			query += "> (SELECT mpath[1] FROM since) "
+			query.WriteString("> (SELECT mpath[1] FROM since) ")
 		}
-		query += "ORDER BY mpath[1] "
+		query.WriteString("ORDER BY mpath[1] ")
 		if desc {
-			query += "DESC"
+			query.WriteString("DESC")
 		}
-		query += ", mpath[1:]"
-		query += ")"
+		query.WriteString(", mpath[1:]")
+		query.WriteString(")")
 	} else {
-		query += "ORDER BY mpath[1] "
+		query.WriteString("ORDER BY mpath[1] ")
 		if desc {
-			query += "DESC"
+			query.WriteString("DESC")
 		}
-		query += ", mpath[1:]"
-		query += ")"
+		query.WriteString(", mpath[1:]")
+		query.WriteString(")")
 	}
 
-	query = "WITH " + query
 	if limit != 0 {
 		if since != "" {
-			query += ", pag AS (SELECT mpath FROM sorted WHERE parent=0 OFFSET $3 LIMIT 1) "
+			query.WriteString(", pag AS (SELECT mpath FROM sorted WHERE parent=0 OFFSET $3 LIMIT 1) ")
 		} else {
-			query += ", pag AS (SELECT mpath FROM sorted WHERE parent=0 OFFSET $2 LIMIT 1) "
+			query.WriteString(", pag AS (SELECT mpath FROM sorted WHERE parent=0 OFFSET $2 LIMIT 1) ")
 		}
-		query += "SELECT author, created,forum,id,isedited,msg,parent,thread FROM sorted  WHERE NOT mpath "
+		query.WriteString("SELECT author, created,forum,id,isedited,msg,parent,thread FROM sorted  WHERE NOT mpath ")
 		if desc {
-			query += " < "
+			query.WriteString(" < ")
 		} else {
-			query += " > "
+			query.WriteString(" > ")
 		}
 
-		query += " (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::integer[])) OR mpath[1] = (SELECT mpath[1] FROM pag) OR (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::integer[])) = ARRAY[]::integer[];"
+		query.WriteString(" (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::integer[])) OR mpath[1] = (SELECT mpath[1] FROM pag) OR (SELECT COALESCE((SELECT mpath FROM pag), ARRAY[]::integer[])) = ARRAY[]::integer[];")
 		if since != "" {
-			rows, err = db.DataBase.Query(query, id, since, limit-1)
+			rows, err = db.DataBase.Query(query.String(), id, since, limit-1)
 		} else {
-			rows, err = db.DataBase.Query(query, id, limit-1)
+			rows, err = db.DataBase.Query(query.String(), id, limit-1)
 		}
 	} else {
-		query += "SELECT author, created,forum,id,isedited,msg,parent,thread FROM sorted;"
+		query.WriteString("SELECT author, created,forum,id,isedited,msg,parent,thread FROM sorted;")
 		if since != "" {
-			rows, err = db.DataBase.Query(query, id, since)
+			rows, err = db.DataBase.Query(query.String(), id, since)
 		} else {
-			rows, err = db.DataBase.Query(query, id)
+			rows, err = db.DataBase.Query(query.String(), id)
 		}
 	}
 
 	defer rows.Close()
-	if err != nil {
-		beego.Warn(err)
-		return nil
-	}
 	posts := make(Posts, 0)
 	for rows.Next() {
 		var t Post

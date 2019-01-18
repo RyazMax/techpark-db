@@ -76,12 +76,6 @@ func ForumSlugThreads(ctx *fasthttp.RequestCtx) {
 		desc = true
 	}
 	limit := ctx.QueryArgs().GetUintOrZero("limit")
-	//if err != nil {
-	//	log.Warn(err)
-	//}
-	//if err != nil {
-	//	log.Warn(err)
-	//}
 	since := string(ctx.QueryArgs().Peek("since"))
 	threads := models.GetThreadsSorted(slug, limit, since, desc, db)
 

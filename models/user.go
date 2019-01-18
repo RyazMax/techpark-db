@@ -104,52 +104,46 @@ func GetUsersSorted(slug string, limit int, since string, desc bool, db *databas
 		rows *pgx.Rows
 		err  error
 	)
-	// Нет вложенного
-	/*subQuery :=
-	`select u.* from forum_user u
-	JOIN
-	((select distinct author from thread WHERE forum = $1)
-	UNION
-	(select distinct author from post WHERE forum = $1)) as p ON nickname=p.author `*/
-	subQuery := `select u.* from forum_user u JOIN user_in_forum uf ON u.nickname=uf.nickname where forum=$1 `
+	var query strings.Builder
+	query.WriteString(`select u.* from forum_user u JOIN user_in_forum uf ON u.nickname=uf.nickname where forum=$1 `)
 	if since != "" {
-		subQuery += "AND u.nickname "
+		query.WriteString("AND u.nickname ")
 		if desc {
-			subQuery += "< $2 "
+			query.WriteString("< $2 ")
 		} else {
-			subQuery += "> $2 "
+			query.WriteString("> $2 ")
 		}
-		subQuery += "GROUP BY u.nickname ORDER BY u.nickname "
+		query.WriteString("GROUP BY u.nickname ORDER BY u.nickname ")
 		if desc {
-			subQuery += "DESC "
+			query.WriteString("DESC ")
 		}
 		if limit != 0 {
-			rows, err = db.DataBase.Query(subQuery+"LIMIT $3;", slug, since, limit)
+			query.WriteString("LIMIT $3;")
+			rows, err = db.DataBase.Query(query.String(), slug, since, limit)
 		} else {
-			rows, err = db.DataBase.Query(subQuery+";", slug, since)
+			query.WriteString(";")
+			rows, err = db.DataBase.Query(query.String(), slug, since)
 		}
 	} else {
-		subQuery += "ORDER BY u.nickname "
+		query.WriteString("ORDER BY u.nickname ")
 		if desc {
-			subQuery += "DESC "
+			query.WriteString("DESC ")
 		}
 		if limit != 0 {
-			rows, err = db.DataBase.Query(subQuery+"LIMIT $2;", slug, limit)
+			query.WriteString("LIMIT $2;")
+			rows, err = db.DataBase.Query(query.String(), slug, limit)
 		} else {
-			rows, err = db.DataBase.Query(subQuery, slug)
+			query.WriteString(";")
+			rows, err = db.DataBase.Query(query.String(), slug)
 		}
 	}
 	defer rows.Close()
-	if err != nil {
-		beego.Warn(err)
-		return nil
-	}
+
 	users := make(Users, 0)
 	for rows.Next() {
 		var u User
 		err = rows.Scan(&u.Email, &u.About, &u.Fullname, &u.Nickname)
 		if err != nil {
-			beego.Warn(err)
 			return nil
 		}
 		users = append(users, u)

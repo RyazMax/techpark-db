@@ -8,10 +8,10 @@ DROP TABLE IF EXISTS user_in_forum CASCADE;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE IF NOT EXISTS forum_user (
-    email CITEXT UNIQUE, 
+    email CITEXT NOT NULL UNIQUE, 
     about text,
     fullname text,
-    nickname CITEXT COLLATE "ucs_basic" primary key 
+    nickname CITEXT COLLATE "ucs_basic" NOT NULL primary key 
 );
 
 CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(email);

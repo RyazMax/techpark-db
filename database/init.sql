@@ -68,9 +68,9 @@ CREATE TABLE IF NOT EXISTS post (
     id SERIAL primary key,
     isEdited BOOL DEFAULT false, 
     Msg text,
-    parent INTEGER,
+    parent INTEGER NOT NULL,
     thread INTEGER NOT NULL,
-    mpath INTEGER ARRAY,
+    mpath INTEGER ARRAY NOT NULL,
 
     FOREIGN KEY(author) REFERENCES forum_user(nickname),
     FOREIGN KEY(forum) REFERENCES forum(slug),

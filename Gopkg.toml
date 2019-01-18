@@ -25,7 +25,7 @@
 #   unused-packages = true
 
 
-[[constraint]]
+[[override]]
   name = "github.com/gorilla/mux"
   version = "1.6.2"
 

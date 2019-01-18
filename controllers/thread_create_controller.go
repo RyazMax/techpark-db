@@ -4,33 +4,25 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-type ThreadCreateController struct {
-	beego.Controller
-	DB *database.DB
-}
-
-func (c *ThreadCreateController) Post() {
-	slugOrID := c.Ctx.Input.Param(":id")
+func ThreadCreatePosts(ctx *fasthttp.RequestCtx) {
+	slugOrID := ctx.UserValue("slug_or_id").(string)
 	id, err := strconv.Atoi(slugOrID)
-	body := c.Ctx.Input.RequestBody
+	body := ctx.PostBody()
 
 	thread := models.Thread{}
 	var exist bool
 	if id != 0 {
-		exist = thread.GetById(id, c.DB)
+		exist = thread.GetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, c.DB)
+		exist = thread.GetBySlug(slugOrID, db)
 	}
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Thread not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, models.Message{Message: "Thread not found"})
 		return
 	}
 
@@ -38,17 +30,12 @@ func (c *ThreadCreateController) Post() {
 
 	json.Unmarshal(body, &posts)
 
-	ids, curTime, err := thread.AddPosts(posts, c.DB)
-	//beego.Info("IN CONTROLL posts_len ", len(posts))
+	ids, curTime, err := thread.AddPosts(posts, db)
 	if err != nil && err.Error() == "No author" {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Author not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, models.Message{Message: "Author not found"})
 		return
 	} else if err != nil {
-		c.Ctx.Output.SetStatus(http.StatusConflict)
-		c.Data["json"] = &models.Message{Message: err.Error()}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusConflict, &models.Message{Message: err.Error()})
 		return
 	}
 	for i := range posts {
@@ -58,8 +45,5 @@ func (c *ThreadCreateController) Post() {
 		posts[i].Forum = thread.Forum
 	}
 
-	c.Ctx.Output.SetStatus(http.StatusCreated)
-	//beego.Info("OK")
-	c.Data["json"] = &posts
-	c.ServeJSON()
+	serveJson(ctx, http.StatusCreated, &posts)
 }

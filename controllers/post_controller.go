@@ -5,58 +5,45 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-type PostController struct {
-	beego.Controller
-	DB *database.DB
-}
-
-func (c *PostController) Post() {
-	param := c.Ctx.Input.Param(":id")
+func PostDetailsPost(ctx *fasthttp.RequestCtx) {
+	param := ctx.UserValue("id").(string)
 	id, _ := strconv.Atoi(param)
 	post := models.Post{}
-	exist := post.GetByID(id, c.DB)
+	exist := post.GetByID(id, db)
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Post not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Post not found"})
 		return
 	}
 
-	body := c.Ctx.Input.RequestBody
+	body := ctx.PostBody()
 	postUpdate := models.PostUpdate{}
 	json.Unmarshal(body, &postUpdate)
 
 	if postUpdate.Message != post.Message && postUpdate.Message != "" {
 		post.Message = postUpdate.Message
 		post.IsEdited = true
-		post.Update(c.DB)
+		post.Update(db)
 	}
 
-	c.Ctx.Output.SetStatus(http.StatusOK)
-	c.Data["json"] = &post
-	c.ServeJSON()
+	serveJson(ctx, http.StatusOK, &post)
 }
 
-func (c *PostController) Get() {
-	param := c.Ctx.Input.Param(":id")
+func PostDetailsGet(ctx *fasthttp.RequestCtx) {
+	param := ctx.UserValue("id").(string)
 	id, _ := strconv.Atoi(param)
 	post := models.Post{}
-	exist := post.GetByID(id, c.DB)
+	exist := post.GetByID(id, db)
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Post not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Post not found"})
 		return
 	}
 
-	related := c.GetString("related")
-	details := strings.Split(related, ",")
+	details := strings.Split(string(ctx.QueryArgs().Peek("related")), ",")
 	var (
 		withAuthor bool
 		withThread bool
@@ -79,22 +66,21 @@ func (c *PostController) Get() {
 	result := models.PostFull{Post: &post}
 	if withAuthor {
 		author := models.User{}
-		author.GetUserByNick(post.Author, c.DB)
+		author.GetUserByNick(post.Author, db)
 		result.Author = &author
 	}
 
 	if withThread {
 		thread := models.Thread{}
-		thread.GetById(post.Thread, c.DB)
+		thread.GetById(post.Thread, db)
 		result.Thread = &thread
 	}
 
 	if withForum {
 		forum := models.Forum{}
-		forum.GetBySlug(post.Forum, c.DB)
+		forum.GetBySlug(post.Forum, db)
 		result.Forum = &forum
 	}
 
-	c.Data["json"] = &result
-	c.ServeJSON()
+	serveJson(ctx, http.StatusOK, &result)
 }

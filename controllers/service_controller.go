@@ -2,28 +2,19 @@ package controllers
 
 import (
 	"net/http"
-	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-type ServiceController struct {
-	beego.Controller
-	DB *database.DB
+func ServiceStatus(ctx *fasthttp.RequestCtx) {
+	info := models.DatabaseInfo{}
+	info.Get(db)
+	serveJson(ctx, http.StatusOK, &info)
 }
 
-func (c *ServiceController) Get() {
-	c.Ctx.Output.SetStatus(http.StatusOK)
+func ServiceClear(ctx *fasthttp.RequestCtx) {
 	info := models.DatabaseInfo{}
-	info.Get(c.DB)
-	c.Data["json"] = &info
-	c.ServeJSON()
-}
-
-func (c *ServiceController) Post() {
-	info := models.DatabaseInfo{}
-	info.Clean(c.DB)
-	c.Ctx.Output.SetStatus(http.StatusOK)
-	c.ServeJSON()
+	info.Clean(db)
+	serveJson(ctx, http.StatusOK, nil)
 }

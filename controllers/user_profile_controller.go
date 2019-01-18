@@ -3,61 +3,43 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-// UserProfileController for requests for profile
-type UserProfileController struct {
-	beego.Controller
-	DB *database.DB
-}
-
 // Get method returns information about user
-func (c *UserProfileController) Get() {
-	nickname := c.Ctx.Input.Param(":nickname")
+func UserGetProfile(ctx *fasthttp.RequestCtx) {
+	nickname := ctx.UserValue("nickname").(string)
 
 	user := models.User{}
-	exist := user.GetUserByNick(nickname, c.DB)
+	exist := user.GetUserByNick(nickname, db)
 
 	if exist {
-		c.Ctx.Output.SetStatus(http.StatusOK)
-		c.Data["json"] = &user
-		c.ServeJSON()
+		serveJson(ctx, http.StatusOK, &user)
 	} else {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Can not found user"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not found user"})
 	}
 }
 
 // Post method returns updates information about user
-func (c *UserProfileController) Post() {
-	nickname := c.Ctx.Input.Param(":nickname")
-	body := c.Ctx.Input.RequestBody
+func UserUpdate(ctx *fasthttp.RequestCtx) {
+	nickname := ctx.UserValue("nickname").(string)
+	body := ctx.PostBody()
 
 	newUser := models.User{}
 	json.Unmarshal(body, &newUser)
 
 	newUser.Nickname = nickname
-	sameUsers := newUser.GetLike(c.DB)
+	sameUsers := newUser.GetLike(db)
 
 	if len(sameUsers) == 0 || (len(sameUsers) == 1 && sameUsers[0].Nickname != newUser.Nickname) {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "User not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "User not found"})
 	} else if len(sameUsers) == 1 {
-		newUser.Update(c.DB)
-		newUser.GetUserByNick(nickname, c.DB)
-		c.Ctx.Output.SetStatus(http.StatusOK)
-		c.Data["json"] = &newUser
-		c.ServeJSON()
+		newUser.Update(db)
+		newUser.GetUserByNick(nickname, db)
+		serveJson(ctx, http.StatusOK, &newUser)
 	} else {
-		c.Ctx.Output.SetStatus(http.StatusConflict)
-		c.Data["json"] = &models.Message{Message: "Can not update user"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusConflict, &models.Message{Message: "Can not update user"})
 	}
-
 }

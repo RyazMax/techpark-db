@@ -3,37 +3,25 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-// UserController is main controller for my app
-type UserController struct {
-	beego.Controller
-	DB *database.DB
-}
-
 // Post method createas new user
-func (c *UserController) Post() {
-	nickname := c.Ctx.Input.Param(":nickname")
-	body := c.Ctx.Input.RequestBody
+func UserCreate(ctx *fasthttp.RequestCtx) {
+	nickname := ctx.UserValue("nickname").(string)
+	body := ctx.PostBody()
 	newUser := &models.User{}
 	json.Unmarshal(body, newUser)
 
 	newUser.Nickname = nickname
-	sameUsers := newUser.GetLike(c.DB)
+	sameUsers := newUser.GetLike(db)
 	if len(sameUsers) > 0 {
-		//beego.Info(sameUsers)
-		c.Ctx.Output.SetStatus(http.StatusConflict)
-		c.Data["json"] = &sameUsers
-		c.ServeJSON()
+		serveJson(ctx, http.StatusConflict, &sameUsers)
 		return
 	}
 
-	newUser.Add(c.DB)
-	c.Ctx.Output.SetStatus(http.StatusCreated)
-	c.Data["json"] = &newUser
-	c.ServeJSON()
+	newUser.Add(db)
+	serveJson(ctx, http.StatusCreated, newUser)
 }

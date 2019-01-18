@@ -4,33 +4,25 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-type ThreadVoteController struct {
-	beego.Controller
-	DB *database.DB
-}
-
-func (c *ThreadVoteController) Post() {
-	slugOrID := c.Ctx.Input.Param(":id")
+func ThreadVote(ctx *fasthttp.RequestCtx) {
+	slugOrID := ctx.UserValue("slug_or_id").(string)
 	id, _ := strconv.Atoi(slugOrID)
-	body := c.Ctx.Input.RequestBody
+	body := ctx.PostBody()
 
 	thread := models.Thread{}
 	var exist bool
 	if id != 0 {
-		exist = thread.GetById(id, c.DB)
+		exist = thread.GetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, c.DB)
+		exist = thread.GetBySlug(slugOrID, db)
 	}
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Thread not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Thread not found"})
 		return
 	}
 
@@ -38,35 +30,16 @@ func (c *ThreadVoteController) Post() {
 	json.Unmarshal(body, &vote)
 
 	author := models.User{}
-	exist = author.GetUserByNick(vote.Nickname, c.DB)
+	exist = author.GetUserByNick(vote.Nickname, db)
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Author not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Author not found"})
 		return
 	}
 	vote.Thread = thread.ID
 	vote.Nickname = author.Nickname
 
-	//oldVote := models.Vote{}
-	//exist = oldVote.GetByNickAndID(vote.Nickname, thread.ID, c.DB)
-	//delta := 0
-	/*if exist {
-		delta = vote.Voice - oldVote.Voice
-	} else {
-		delta = vote.Voice
-	}
-	thread.Votes += delta*/
+	vote.Add(db)
 
-	/*if exist {
-		vote.Update(c.DB)
-	} else {
-		vote.Add(c.DB)
-	}*/
-	vote.Add(c.DB)
-	//pqErr := err.(*pq.Error)
-	//beego.Info(pqErr.Code)
-	thread.Votes = thread.GetVotesById(thread.ID, c.DB)
-	c.Data["json"] = &thread
-	c.ServeJSON()
+	thread.Votes = thread.GetVotesById(thread.ID, db)
+	serveJson(ctx, http.StatusOK, &thread)
 }

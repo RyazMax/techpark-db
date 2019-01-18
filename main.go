@@ -5,16 +5,16 @@ package main
 // ./tech-db-forum func -u http://localhost:5000/api -r report.html
 
 import (
+	"log"
 	"techpark-db/database"
 	"techpark-db/routers"
 
-	"github.com/astaxie/beego"
-	_ "github.com/gorilla/mux"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
 
-	var db database.DB
+	db := database.GetDB()
 	db.GetPool()
 	db.InitDB("database/init.sql")
 	db.DataBase.Close()
@@ -22,7 +22,6 @@ func main() {
 
 	//db.InitDB("database/init.sql")
 	//defer db.DataBase.Close()
-
-	routers.InitRouter(&db)
-	beego.Run(":5000")
+	log.Println("Start server on :5000")
+	log.Fatal(fasthttp.ListenAndServe(":5000", routers.Handler))
 }

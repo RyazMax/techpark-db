@@ -3,43 +3,39 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"path"
 	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-type ForumSlugController struct {
-	beego.Controller
-	DB *database.DB
+var db *database.DB
+
+func init() {
+	db = database.GetDB()
 }
 
-func (c *ForumSlugController) Post() {
-	slug := c.Ctx.Input.Param(":slug")
-	body := c.Ctx.Input.RequestBody
+func ForumSlugCreate(ctx *fasthttp.RequestCtx) {
+	slug := ctx.UserValue("slug").(string)
+	body := ctx.PostBody()
 
 	newThread := models.Thread{}
 	json.Unmarshal(body, &newThread)
 
 	// Наличие юзера
 	owner := models.User{}
-	exist := owner.GetUserByNick(newThread.Author, c.DB)
+	exist := owner.GetUserByNick(newThread.Author, db)
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Can not find user"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find user"})
 		return
 	}
 	newThread.Author = owner.Nickname
 
 	// Наличие форума
 	forum := models.Forum{}
-	exist = forum.GetBySlug(slug, c.DB)
+	exist = forum.GetBySlug(slug, db)
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Can not find forum"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find forum"})
 		return
 	}
 
@@ -47,103 +43,67 @@ func (c *ForumSlugController) Post() {
 	newThread.Forum = forum.Slug
 	if newThread.Slug != "" {
 		oldThread := models.Thread{}
-		exist = oldThread.GetBySlug(newThread.Slug, c.DB)
+		exist = oldThread.GetBySlug(newThread.Slug, db)
 		if exist {
-			c.Ctx.Output.SetStatus(http.StatusConflict)
-			c.Data["json"] = &oldThread
-			c.ServeJSON()
+			serveJson(ctx, http.StatusConflict, &oldThread)
 			return
 		}
 	}
 
-	//forum.Threads++
-	//forum.Update(c.DB)
-	newThread.Add(c.DB)
-	c.Ctx.Output.SetStatus(http.StatusCreated)
-	c.Data["json"] = &newThread
-	c.ServeJSON()
+	newThread.Add(db)
+	serveJson(ctx, http.StatusCreated, &newThread)
 }
 
-func (c *ForumSlugController) Get() {
-	switch path.Base(c.Ctx.Input.URL()) {
-	case "details":
-		c.details()
-		return
-	case "threads":
-		c.threads()
-		return
-	case "users":
-		c.users()
-		return
-	}
-}
-
-func (c *ForumSlugController) details() {
+func ForumSlugDetails(ctx *fasthttp.RequestCtx) {
 	forum := models.Forum{}
-	slug := c.Ctx.Input.Param(":slug")
+	slug := ctx.UserValue("slug").(string)
 
-	exist := forum.GetBySlug(slug, c.DB)
+	exist := forum.GetBySlug(slug, db)
 	if exist {
-		c.Ctx.Output.SetStatus(http.StatusOK)
-		c.Data["json"] = &forum
-		c.ServeJSON()
+		serveJson(ctx, http.StatusOK, &forum)
 	} else {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Can not find forum"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find forum"})
 	}
 }
 
-func (c *ForumSlugController) threads() {
+func ForumSlugThreads(ctx *fasthttp.RequestCtx) {
 	var forum models.Forum
-	slug := c.Ctx.Input.Param(":slug")
-	exist := forum.GetBySlug(slug, c.DB)
+	slug := ctx.UserValue("slug").(string)
+	exist := forum.GetBySlug(slug, db)
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = models.Message{Message: "Can not find forum"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find forum"})
 		return
 	}
 
-	limit, err := c.GetInt("limit", 0)
-	if err != nil {
-		beego.Warn(err)
-	}
-	desc, err := c.GetBool("desc", false)
-	if err != nil {
-		beego.Warn(err)
-	}
-	since := c.GetString("since", "")
-	threads := models.GetThreadsSorted(slug, limit, since, desc, c.DB)
+	limit := ctx.QueryArgs().GetUintOrZero("limit")
+	//if err != nil {
+	//	log.Warn(err)
+	//}
+	desc := ctx.QueryArgs().GetBool("desc")
+	//if err != nil {
+	//	log.Warn(err)
+	//}
+	since := string(ctx.QueryArgs().Peek("since"))
+	threads := models.GetThreadsSorted(slug, limit, since, desc, db)
 
-	c.Ctx.Output.SetStatus(http.StatusOK)
-	c.Data["json"] = &threads
-	c.ServeJSON()
+	serveJson(ctx, http.StatusOK, &threads)
 }
 
-func (c *ForumSlugController) users() {
+func ForumSlugUsers(ctx *fasthttp.RequestCtx) {
 	var forum models.Forum
-	slug := c.Ctx.Input.Param(":slug")
-	exist := forum.GetBySlug(slug, c.DB)
+	slug := ctx.UserValue("slug").(string)
+	exist := forum.GetBySlug(slug, db)
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = models.Message{Message: "Can not find forum"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find forum"})
 		return
 	}
 
-	limit, err := c.GetInt("limit", 0)
-	if err != nil {
-		beego.Warn(err)
-	}
-	desc, err := c.GetBool("desc", false)
-	if err != nil {
-		beego.Warn(err)
-	}
-	since := c.GetString("since", "")
-	users := models.GetUsersSorted(slug, limit, since, desc, c.DB)
+	limit := ctx.QueryArgs().GetUintOrZero("limit")
 
-	c.Ctx.Output.SetStatus(http.StatusOK)
-	c.Data["json"] = &users
-	c.ServeJSON()
+	desc := ctx.QueryArgs().GetBool("desc")
+
+	since := string(ctx.QueryArgs().Peek("since"))
+	users := models.GetUsersSorted(slug, limit, since, desc, db)
+
+	serveJson(ctx, http.StatusOK, &users)
 }

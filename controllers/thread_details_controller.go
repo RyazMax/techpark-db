@@ -4,54 +4,44 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"techpark-db/database"
 	"techpark-db/models"
 
-	"github.com/astaxie/beego"
+	"github.com/valyala/fasthttp"
 )
 
-type ThreadDetailsController struct {
-	beego.Controller
-	DB *database.DB
-}
-
-func (c *ThreadDetailsController) Get() {
-	slugOrID := c.Ctx.Input.Param(":id")
+func ThreadDetailsGet(ctx *fasthttp.RequestCtx) {
+	slugOrID := ctx.UserValue("slug_or_id").(string)
 	id, err := strconv.Atoi(slugOrID)
 
 	thread := models.Thread{}
 	var exist bool
 	if err == nil {
-		exist = thread.GetById(id, c.DB)
+		exist = thread.GetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, c.DB)
+		exist = thread.GetBySlug(slugOrID, db)
 	}
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Thread not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Thread not found"})
 		return
 	}
-	c.Data["json"] = &thread
-	c.ServeJSON()
+
+	serveJson(ctx, http.StatusOK, &thread)
 }
 
-func (c *ThreadDetailsController) Post() {
-	slugOrID := c.Ctx.Input.Param(":id")
+func ThreadDetailsPost(ctx *fasthttp.RequestCtx) {
+	slugOrID := ctx.UserValue("slug_or_id").(string)
 	id, err := strconv.Atoi(slugOrID)
-	body := c.Ctx.Input.RequestBody
+	body := ctx.PostBody()
 
 	thread := models.Thread{}
 	var exist bool
 	if err == nil {
-		exist = thread.GetById(id, c.DB)
+		exist = thread.GetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, c.DB)
+		exist = thread.GetBySlug(slugOrID, db)
 	}
 	if !exist {
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.Data["json"] = &models.Message{Message: "Thread not found"}
-		c.ServeJSON()
+		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Thread not found"})
 		return
 	}
 
@@ -65,8 +55,6 @@ func (c *ThreadDetailsController) Post() {
 		thread.Title = updateThread.Title
 	}
 
-	thread.Update(c.DB)
-	c.Ctx.Output.SetStatus(http.StatusOK)
-	c.Data["json"] = &thread
-	c.ServeJSON()
+	thread.Update(db)
+	serveJson(ctx, http.StatusOK, &thread)
 }

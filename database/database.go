@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/astaxie/beego"
-
 	"github.com/jackc/pgx"
 	_ "github.com/lib/pq"
 )
@@ -14,21 +12,7 @@ type DB struct {
 	DataBase *pgx.ConnPool
 }
 
-/*func (db *DB) ConectDB() {
-	connStr := "user=docker password=docker dbname=docker sslmode=disable"
-
-	newDB, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = newDB.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db.DataBase = newDB
-	log.Println("Database conected")
-}*/
+var db DB
 
 func (db *DB) GetPool() {
 	connPool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
@@ -42,7 +26,7 @@ func (db *DB) GetPool() {
 		MaxConnections: 50,
 	})
 	if err != nil {
-		beego.Error("ERR", err)
+		log.Fatal(err)
 	}
 	db.DataBase = connPool
 }
@@ -54,10 +38,13 @@ func (db DB) InitDB(filename string) {
 	}
 
 	cmd := string(pd)
-	res, err := db.DataBase.Exec(cmd)
+	_, err = db.DataBase.Exec(cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
-	beego.Info(res.RowsAffected())
-	beego.Info("Database inited")
+	log.Println("Database inited")
+}
+
+func GetDB() *DB {
+	return &db
 }

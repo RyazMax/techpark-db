@@ -78,6 +78,8 @@ CREATE TABLE IF NOT EXISTS post (
 );
 
 CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread, id);
+CREATE INDEX IF NOT EXISTS post_thread_created_id ON post(thread, created);
+CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]));
 
 CREATE OR REPLACE FUNCTION incPosts() RETURNS TRIGGER AS
 $$BEGIN

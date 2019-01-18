@@ -20,7 +20,7 @@ func GetVoteByNickAndID(nick string, id int, db *database.DB) (v Vote, exist boo
 }
 
 func VoteAdd(v Vote, db *database.DB) {
-	_, err := db.DataBase.Exec("INSERT INTO vote as v (nickname,voice,thread) values($1,$2,$3) ON CONFLICT (nickname, thread) DO UPDATE SET voice=$2;", v.Nickname, v.Voice, v.Thread)
+	_, err := db.DataBase.Exec("INSERT INTO vote as v (nickname,voice,thread) values($1,$2,$3) ON CONFLICT(nickname, thread) DO UPDATE SET voice=$2;", v.Nickname, v.Voice, v.Thread)
 	if err != nil {
 		return
 	}

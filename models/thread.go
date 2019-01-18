@@ -103,7 +103,7 @@ func (t *Thread) GetPostsID(db *database.DB) (res []int) {
 
 func (t *Thread) AddPosts(posts Posts, db *database.DB) ([]int, time.Time, error) {
 	result := make([]int, 0, len(posts))
-	curTime := time.Now()
+	curTime := time.Now().Truncate(time.Microsecond)
 	//thread_ids := t.GetPostsID(db)
 	authors := make(map[string]bool)
 	parents := make(map[int]bool)

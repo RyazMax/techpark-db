@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"techpark-db/database"
 	"time"
@@ -32,7 +33,7 @@ type ThreadUpdate struct {
 //easyjson:json
 type Threads []Thread
 
-func (t *Thread) Add(db *database.DB) {
+func ThreadAdd(t *Thread, db *database.DB) {
 	var err error
 	if t.Created.IsZero() {
 		err = db.DataBase.QueryRow("INSERT INTO THREAD(author, forum, msg, title, slug) values ($1, $2, $3, $4, $5) RETURNING *;", t.Author, t.Forum, t.Message, t.Title, t.Slug).
@@ -42,58 +43,57 @@ func (t *Thread) Add(db *database.DB) {
 			Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 	}
 	if err != nil {
-		beego.Warn(err)
+		log.Println(err)
 		return
 	}
 }
 
-func (t *Thread) Update(db *database.DB) {
+func ThreadUpd(t Thread, db *database.DB) {
 	_, err := db.DataBase.Exec("UPDATE thread SET votes=$1, title=$3, msg=$4 WHERE id=$2;", t.Votes, t.ID, t.Title, t.Message)
 	if err != nil {
-		beego.Warn(err)
+		log.Println(err)
 	}
 }
 
-func (t *Thread) GetById(id int, db *database.DB) bool {
+func ThreadGetById(id int, db *database.DB) (t Thread, exist bool) {
 	err := db.DataBase.QueryRow("SELECT author, created, forum, id, isedited, msg, slug, title, votes FROM THREAD WHERE id = $1", id).
 		Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 	if err != nil {
-		return false
+		return Thread{}, false
 	}
-	return true
+	return t, true
 }
 
-func (t *Thread) GetVotesById(id int, db *database.DB) (votes int) {
+func GetVotesById(id int, db *database.DB) (votes int) {
 	err := db.DataBase.QueryRow("SELECT votes FROM THREAD WHERE id = $1;", id).
 		Scan(&votes)
 	if err != nil {
-		beego.Warn(err)
+		log.Println(err)
 		return 0
 	}
 	return votes
 }
 
-func (t *Thread) GetBySlug(slug string, db *database.DB) bool {
+func ThreadGetBySlug(slug string, db *database.DB) (t Thread, exist bool) {
 	err := db.DataBase.QueryRow("SELECT * FROM THREAD WHERE slug=$1", slug).
 		Scan(&t.Author, &t.Created, &t.Forum, &t.ID, &t.IsEdited, &t.Message, &t.Slug, &t.Title, &t.Votes)
 	if err != nil {
-		return false
+		return Thread{}, false
 	}
-	return true
+	return t, true
 }
 
 func (t *Thread) GetPostsID(db *database.DB) (res []int) {
 	rows, err := db.DataBase.Query("SELECT id FROM post WHERE thread=$1;", t.ID)
 	defer rows.Close()
 	if err != nil {
-		beego.Warn(err)
+		log.Println(err)
 		return make([]int, 0)
 	}
 	var i int
 	for rows.Next() {
 		rows.Scan(&i)
 		if err != nil {
-			beego.Warn(err)
 			return make([]int, 0)
 		}
 		res = append(res, i)

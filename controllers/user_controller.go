@@ -16,12 +16,12 @@ func UserCreate(ctx *fasthttp.RequestCtx) {
 	json.Unmarshal(body, newUser)
 
 	newUser.Nickname = nickname
-	sameUsers := newUser.GetLike(db)
+	sameUsers := models.GetUserByNickOrEmail(nickname, newUser.Email, db)
 	if len(sameUsers) > 0 {
 		serveJson(ctx, http.StatusConflict, &sameUsers)
 		return
 	}
 
-	newUser.Add(db)
+	models.UserAdd(*newUser, db)
 	serveJson(ctx, http.StatusCreated, newUser)
 }

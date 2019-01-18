@@ -17,9 +17,9 @@ func ThreadVote(ctx *fasthttp.RequestCtx) {
 	thread := models.Thread{}
 	var exist bool
 	if id != 0 {
-		exist = thread.GetById(id, db)
+		thread, exist = models.ThreadGetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, db)
+		thread, exist = models.ThreadGetBySlug(slugOrID, db)
 	}
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Thread not found"})
@@ -29,8 +29,7 @@ func ThreadVote(ctx *fasthttp.RequestCtx) {
 	vote := models.Vote{}
 	json.Unmarshal(body, &vote)
 
-	author := models.User{}
-	exist = author.GetUserByNick(vote.Nickname, db)
+	author, exist := models.GetUserByNick(vote.Nickname, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Author not found"})
 		return
@@ -38,8 +37,8 @@ func ThreadVote(ctx *fasthttp.RequestCtx) {
 	vote.Thread = thread.ID
 	vote.Nickname = author.Nickname
 
-	vote.Add(db)
+	models.VoteAdd(vote, db)
 
-	thread.Votes = thread.GetVotesById(thread.ID, db)
+	thread.Votes = models.GetVotesById(thread.ID, db)
 	serveJson(ctx, http.StatusOK, &thread)
 }

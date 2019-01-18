@@ -14,9 +14,9 @@ func ThreadGetPosts(ctx *fasthttp.RequestCtx) {
 	id, err := strconv.Atoi(slugOrID)
 	var exist bool
 	if err != nil {
-		exist = thread.GetBySlug(slugOrID, db)
+		thread, exist = models.ThreadGetBySlug(slugOrID, db)
 	} else {
-		exist = thread.GetById(id, db)
+		thread, exist = models.ThreadGetById(id, db)
 	}
 
 	if !exist {

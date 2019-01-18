@@ -13,8 +13,7 @@ import (
 func PostDetailsPost(ctx *fasthttp.RequestCtx) {
 	param := ctx.UserValue("id").(string)
 	id, _ := strconv.Atoi(param)
-	post := models.Post{}
-	exist := post.GetByID(id, db)
+	post, exist := models.PostGetByID(id, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Post not found"})
 		return
@@ -27,7 +26,7 @@ func PostDetailsPost(ctx *fasthttp.RequestCtx) {
 	if postUpdate.Message != post.Message && postUpdate.Message != "" {
 		post.Message = postUpdate.Message
 		post.IsEdited = true
-		post.Update(db)
+		models.PostUpd(post, db)
 	}
 
 	serveJson(ctx, http.StatusOK, &post)
@@ -36,8 +35,7 @@ func PostDetailsPost(ctx *fasthttp.RequestCtx) {
 func PostDetailsGet(ctx *fasthttp.RequestCtx) {
 	param := ctx.UserValue("id").(string)
 	id, _ := strconv.Atoi(param)
-	post := models.Post{}
-	exist := post.GetByID(id, db)
+	post, exist := models.PostGetByID(id, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Post not found"})
 		return
@@ -65,20 +63,17 @@ func PostDetailsGet(ctx *fasthttp.RequestCtx) {
 
 	result := models.PostFull{Post: &post}
 	if withAuthor {
-		author := models.User{}
-		author.GetUserByNick(post.Author, db)
+		author, _ := models.GetUserByNick(post.Author, db)
 		result.Author = &author
 	}
 
 	if withThread {
-		thread := models.Thread{}
-		thread.GetById(post.Thread, db)
+		thread, _ := models.ThreadGetById(post.Thread, db)
 		result.Thread = &thread
 	}
 
 	if withForum {
-		forum := models.Forum{}
-		forum.GetBySlug(post.Forum, db)
+		forum, _ := models.ForumGetBySlug(post.Forum, db)
 		result.Forum = &forum
 	}
 

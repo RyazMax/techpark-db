@@ -14,20 +14,24 @@ CREATE TABLE IF NOT EXISTS forum_user (
     nickname CITEXT COLLATE "ucs_basic" primary key 
 );
 
+CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(email);
+
+------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS forum (
     posts INTEGER,
     slug CITEXT primary key,
     threads INTEGER,
     title text,
-    forum_user CITEXT,
+    forum_user CITEXT NOT NULL,
 
     FOREIGN KEY (forum_user) REFERENCES forum_user(nickname) 
 );
 
+-------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS thread (
-    author CITEXT,
+    author CITEXT NOT NULL,
     created TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    forum CITEXT,
+    forum CITEXT NOT NULL,
     id SERIAL primary key,
     isEdited BOOL DEFAULT false, 
     Msg text,
@@ -39,12 +43,12 @@ CREATE TABLE IF NOT EXISTS thread (
     FOREIGN KEY(forum) REFERENCES forum(slug)
 );
 
-/* Триггер на добавление thread
-*/
+CREATE INDEX IF NOT EXISTS thread_slug_idx on thread(slug);
+
 
 CREATE OR REPLACE FUNCTION incThreads() RETURNS TRIGGER AS
 $$BEGIN
-    UPDATE forum SET threads = threads + 1 WHERE LOWER(slug) = LOWER(NEW.forum);
+    UPDATE forum SET threads = threads + 1 WHERE slug = NEW.forum;
     RETURN NEW;
 END;
 $$ LANGUAGE PLPGSQL;
@@ -55,27 +59,29 @@ CREATE TRIGGER incThreadsOnInsertThread
 AFTER INSERT ON thread
 FOR EACH ROW EXECUTE PROCEDURE incThreads();
 
+
+-------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS post (
-    author CITEXT,
+    author CITEXT NOT NULL,
     created TIMESTAMP WITH TIME ZONE,
-    forum CITEXT,
+    forum CITEXT NOT NULL,
     id SERIAL primary key,
     isEdited BOOL DEFAULT false, 
     Msg text,
     parent INTEGER,
-    thread INTEGER,
+    thread INTEGER NOT NULL,
     mpath INTEGER ARRAY,
 
     FOREIGN KEY(author) REFERENCES forum_user(nickname),
     FOREIGN KEY(forum) REFERENCES forum(slug),
     FOREIGN KEY(thread) REFERENCES thread(id)
 );
-/*
-Триггер на добавление поста
-*/
+
+CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread, id);
+
 CREATE OR REPLACE FUNCTION incPosts() RETURNS TRIGGER AS
 $$BEGIN
-    UPDATE forum SET posts = posts + 1 WHERE LOWER(slug) = LOWER(NEW.forum);
+    UPDATE forum SET posts = posts + 1 WHERE slug = NEW.forum;
     RETURN NEW;
 END;
 $$ LANGUAGE PLPGSQL;
@@ -85,8 +91,6 @@ DROP TRIGGER IF EXISTS incPostsOnInsertPost on post;
 CREATE TRIGGER incPostsOnInsertPost 
 AFTER INSERT ON post
 FOR EACH ROW EXECUTE PROCEDURE incPosts();
-
-DROP FUNCTION IF EXISTS getMpath();
 
 CREATE OR REPLACE FUNCTION getMpath(INTEGER) RETURNS INTEGER ARRAY
     AS 'SELECT mpath FROM post WHERE post.id = $1;'
@@ -109,10 +113,12 @@ CREATE TRIGGER addPathOnInsertPost
     BEFORE INSERT ON post
     FOR EACH ROW EXECUTE PROCEDURE addPath();
 
+
+------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS vote (
-    nickname CITEXT,
+    nickname CITEXT NOT NULL,
     voice SMALLINT,
-    thread INTEGER,
+    thread INTEGER NOT NULL,
 
     FOREIGN KEY(nickname) REFERENCES forum_user(nickname),
     FOREIGN KEY(thread) REFERENCES thread(id),
@@ -145,9 +151,11 @@ CREATE TRIGGER incVotesOnUpdateVote
 AFTER UPDATE ON vote
 FOR EACH ROW EXECUTE PROCEDURE incVotesUpd();
 
+
+---------------------------------------------------------------------------------------
 CREATE TABLE user_in_forum (
-    nickname CITEXT,
-    forum CITEXT,
+    nickname CITEXT NOT NULL,
+    forum CITEXT NOT NULL,
 
     FOREIGN KEY(nickname) REFERENCES forum_user(nickname),
     FOREIGN KEY(forum) REFERENCES forum(slug),
@@ -168,46 +176,3 @@ DROP TRIGGER IF EXISTS addUserOnThreadsTRIG on thread;
 CREATE TRIGGER addUserOnThreadsTRIG 
 AFTER INSERT ON thread
 FOR EACH ROW EXECUTE PROCEDURE addUserOnThreads();
-
-CREATE OR REPLACE FUNCTION addUserOnPost() RETURNS TRIGGER AS
-$$BEGIN
-    INSERT INTO user_in_forum(nickname, forum) VALUES (NEW.author, NEW.forum) ON CONFLICT DO NOTHING;
-    RETURN NEW;
-END;
-$$ LANGUAGE PLPGSQL;
-
-DROP TRIGGER IF EXISTS addUserOnPostTRIG on post;
-
---CREATE TRIGGER addUserOnPostTRIG
---AFTER INSERT ON post
---FOR EACH ROW EXECUTE PROCEDURE addUserOnPost();
- 
-
-DROP INDEX IF EXISTS user_in_forum_idx;
---CREATE INDEX user_in_forum_idx on user_in_forum(forum, nickname);
-
-DROP INDEX IF EXISTS forum_user_nickname_idx;
-DROP INDEX IF EXISTS forum_user_nickname_email_idx;
-DROP INDEX IF EXISTS vote_username_thread_idx;
-DROP INDEX IF EXISTS thread_forum_created_idx;
-DROP INDEX IF EXISTS thread_slug_idx;
-
-DROP INDEX IF EXISTS posts_thread_idx;
-DROP INDEX IF EXISTS posts_thread_created_idx;
-DROP INDEX IF EXISTS post_mpath_idx;
-DROP INDEX IF EXISTS post_mpath_desc_idx;
-DROP INDEX IF EXISTS post_hash_id;
-
---CREATE INDEX IF NOT EXISTS forum_user_nickname_idx ON forum_user(nickname);
-CREATE INDEX IF NOT EXISTS forum_user_nickname_email_idx ON forum_user(email);
-
-CREATE INDEX IF NOT EXISTS thread_slug_idx on thread(slug);
---CREATE INDEX IF NOT EXISTS thread_forum_id on thread (forum);
-CREATE INDEX IF NOT EXISTS thread_forum_created_idx ON thread (forum, created);
-CREATE INDEX IF NOT EXISTS vote_username_thread_idx ON vote (nickname, thread);
-
-CREATE INDEX IF NOT EXISTS post_thread_idx ON post(thread, id);
---CREATE INDEX IF NOT EXISTS posts_thread_created_idx ON post(thread, created);
---CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]))
---CREATE INDEX IF NOT EXISTS post_mpath_idx ON post((mpath[1]), (mpath[2:]));
---CREATE INDEX IF NOT EXISTS post_mpath_desc_id ON post((mpath[1]) desc, (mpath[2:]))

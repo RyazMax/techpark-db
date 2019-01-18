@@ -26,10 +26,9 @@ type UserUpdate struct {
 //easyjson:json
 type Users []User
 
-func (newUser *User) Add(db *database.DB) error {
+func UserAdd(newUser User, db *database.DB) error {
 	_, err := db.DataBase.Exec("insert into forum_user(email,about,fullname,nickname) values ($1,$2,$3,$4);", newUser.Email, newUser.About, newUser.Fullname, newUser.Nickname)
 	if err != nil {
-		beego.Warn("IN ADD", err)
 		return err
 	}
 	return nil
@@ -54,14 +53,9 @@ func AddUsersToForum(forum string, users *map[string]bool, db *database.DB) {
 	db.DataBase.Exec(query.String(), args...)
 }
 
-func (u *User) GetLike(db *database.DB) Users {
+func GetUserByNickOrEmail(nick string, email string, db *database.DB) Users {
 	rows, err := db.DataBase.Query("select * from forum_user where nickname = $2 or email = $1;",
-		u.Email, u.Nickname)
-	if err != nil {
-		beego.Warn("IN get like ", err.Error())
-		//beego.Warn(err.(*pgx.PgError).Detail)
-		//beego.Warn(err.(*pgx.PgError).Message)
-	}
+		email, nick)
 	defer rows.Close()
 	users := make(Users, 0, 2)
 	for rows.Next() {
@@ -77,16 +71,16 @@ func (u *User) GetLike(db *database.DB) Users {
 	return users
 }
 
-func (u *User) GetUserByNick(nickname string, db *database.DB) (exist bool) {
+func GetUserByNick(nickname string, db *database.DB) (u User, exist bool) {
 	err := db.DataBase.QueryRow("select * from forum_user where nickname = $1;", nickname).
 		Scan(&u.Email, &u.About, &u.Fullname, &u.Nickname)
 	if err != nil {
-		return false
+		return User{}, false
 	}
-	return true
+	return u, true
 }
 
-func (u *User) Update(db *database.DB) error {
+func UserUpd(u User, db *database.DB) error {
 
 	var err error
 	if u.About != "" {

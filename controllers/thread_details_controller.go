@@ -16,9 +16,9 @@ func ThreadDetailsGet(ctx *fasthttp.RequestCtx) {
 	thread := models.Thread{}
 	var exist bool
 	if err == nil {
-		exist = thread.GetById(id, db)
+		thread, exist = models.ThreadGetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, db)
+		thread, exist = models.ThreadGetBySlug(slugOrID, db)
 	}
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Thread not found"})
@@ -36,9 +36,9 @@ func ThreadDetailsPost(ctx *fasthttp.RequestCtx) {
 	thread := models.Thread{}
 	var exist bool
 	if err == nil {
-		exist = thread.GetById(id, db)
+		thread, exist = models.ThreadGetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, db)
+		thread, exist = models.ThreadGetBySlug(slugOrID, db)
 	}
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Thread not found"})
@@ -55,6 +55,6 @@ func ThreadDetailsPost(ctx *fasthttp.RequestCtx) {
 		thread.Title = updateThread.Title
 	}
 
-	thread.Update(db)
+	models.ThreadUpd(thread, db)
 	serveJson(ctx, http.StatusOK, &thread)
 }

@@ -14,12 +14,12 @@ func ThreadCreatePosts(ctx *fasthttp.RequestCtx) {
 	id, err := strconv.Atoi(slugOrID)
 	body := ctx.PostBody()
 
-	thread := models.Thread{}
+	var thread models.Thread
 	var exist bool
 	if id != 0 {
-		exist = thread.GetById(id, db)
+		thread, exist = models.ThreadGetById(id, db)
 	} else {
-		exist = thread.GetBySlug(slugOrID, db)
+		thread, exist = models.ThreadGetBySlug(slugOrID, db)
 	}
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, models.Message{Message: "Thread not found"})

@@ -12,8 +12,7 @@ import (
 func UserGetProfile(ctx *fasthttp.RequestCtx) {
 	nickname := ctx.UserValue("nickname").(string)
 
-	user := models.User{}
-	exist := user.GetUserByNick(nickname, db)
+	user, exist := models.GetUserByNick(nickname, db)
 
 	if exist {
 		serveJson(ctx, http.StatusOK, &user)
@@ -31,13 +30,13 @@ func UserUpdate(ctx *fasthttp.RequestCtx) {
 	json.Unmarshal(body, &newUser)
 
 	newUser.Nickname = nickname
-	sameUsers := newUser.GetLike(db)
+	sameUsers := models.GetUserByNickOrEmail(nickname, newUser.Email, db)
 
 	if len(sameUsers) == 0 || (len(sameUsers) == 1 && sameUsers[0].Nickname != newUser.Nickname) {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "User not found"})
 	} else if len(sameUsers) == 1 {
-		newUser.Update(db)
-		newUser.GetUserByNick(nickname, db)
+		models.UserUpd(newUser, db)
+		newUser, _ := models.GetUserByNick(nickname, db)
 		serveJson(ctx, http.StatusOK, &newUser)
 	} else {
 		serveJson(ctx, http.StatusConflict, &models.Message{Message: "Can not update user"})

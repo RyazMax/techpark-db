@@ -14,23 +14,20 @@ func ForumCreate(ctx *fasthttp.RequestCtx) {
 
 	json.Unmarshal(body, &newForum)
 
-	owner := models.User{}
-	exist := owner.GetUserByNick(newForum.User, db)
+	owner, exist := models.GetUserByNick(newForum.User, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find user"})
 		return
 	}
 	newForum.User = owner.Nickname
 
-	oldForum := models.Forum{}
-	exist = oldForum.GetBySlug(newForum.Slug, db)
+	oldForum, exist := models.ForumGetBySlug(newForum.Slug, db)
 	if exist {
 		serveJson(ctx, http.StatusConflict, &oldForum)
 		return
 	}
 
-	newForum.Create(db)
-	newForum.GetBySlug(newForum.Slug, db)
+	models.ForumCreate(newForum, db)
 	serveJson(ctx, http.StatusCreated, &newForum)
 
 }

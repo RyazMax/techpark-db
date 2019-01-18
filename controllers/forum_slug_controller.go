@@ -23,8 +23,7 @@ func ForumSlugCreate(ctx *fasthttp.RequestCtx) {
 	json.Unmarshal(body, &newThread)
 
 	// Наличие юзера
-	owner := models.User{}
-	exist := owner.GetUserByNick(newThread.Author, db)
+	owner, exist := models.GetUserByNick(newThread.Author, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find user"})
 		return
@@ -32,8 +31,7 @@ func ForumSlugCreate(ctx *fasthttp.RequestCtx) {
 	newThread.Author = owner.Nickname
 
 	// Наличие форума
-	forum := models.Forum{}
-	exist = forum.GetBySlug(slug, db)
+	forum, exist := models.ForumGetBySlug(slug, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find forum"})
 		return
@@ -42,23 +40,21 @@ func ForumSlugCreate(ctx *fasthttp.RequestCtx) {
 	// Дубликат по ветке
 	newThread.Forum = forum.Slug
 	if newThread.Slug != "" {
-		oldThread := models.Thread{}
-		exist = oldThread.GetBySlug(newThread.Slug, db)
+		oldThread, exist := models.ThreadGetBySlug(newThread.Slug, db)
 		if exist {
 			serveJson(ctx, http.StatusConflict, &oldThread)
 			return
 		}
 	}
 
-	newThread.Add(db)
+	models.ThreadAdd(&newThread, db)
 	serveJson(ctx, http.StatusCreated, &newThread)
 }
 
 func ForumSlugDetails(ctx *fasthttp.RequestCtx) {
-	forum := models.Forum{}
 	slug := ctx.UserValue("slug").(string)
 
-	exist := forum.GetBySlug(slug, db)
+	forum, exist := models.ForumGetBySlug(slug, db)
 	if exist {
 		serveJson(ctx, http.StatusOK, &forum)
 	} else {
@@ -67,9 +63,8 @@ func ForumSlugDetails(ctx *fasthttp.RequestCtx) {
 }
 
 func ForumSlugThreads(ctx *fasthttp.RequestCtx) {
-	var forum models.Forum
 	slug := ctx.UserValue("slug").(string)
-	exist := forum.GetBySlug(slug, db)
+	_, exist := models.ForumGetBySlug(slug, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find forum"})
 		return
@@ -94,9 +89,8 @@ func ForumSlugThreads(ctx *fasthttp.RequestCtx) {
 }
 
 func ForumSlugUsers(ctx *fasthttp.RequestCtx) {
-	var forum models.Forum
 	slug := ctx.UserValue("slug").(string)
-	exist := forum.GetBySlug(slug, db)
+	_, exist := models.ForumGetBySlug(slug, db)
 	if !exist {
 		serveJson(ctx, http.StatusNotFound, &models.Message{Message: "Can not find forum"})
 		return

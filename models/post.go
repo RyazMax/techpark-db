@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"techpark-db/database"
 	"time"
@@ -36,27 +37,10 @@ type PostUpdate struct {
 //easyjson:json
 type Posts []Post
 
-func (p *Post) Add(db *database.DB) error {
-	//var d []uint8
-	/*var str strings.Builder
-	str.
-	stmt, err := db.DataBase.Prepare("insert into post(author,msg,parent,forum,thread,created)" +
-		"values ($1,$2,$3,$4,$5,$6) RETURNING author,created,forum,id,isedited,msg,parent,thread;")
-	err := db.DataBase.QueryRow("insert into post(author,msg,parent,forum,thread,created)"+
-		"values ($1,$2,$3,$4,$5,$6) RETURNING author,created,forum,id,isedited,msg,parent,thread;",
-		p.Author, p.Message, p.Parent, p.Forum, p.Thread, p.Created).
-		Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
-	if err != nil {
-		beego.Warn(err)
-		log.Println(err)
-	}*/
-	return nil
-}
-
-func (p *Post) Update(db *database.DB) {
+func PostUpd(p Post, db *database.DB) {
 	_, err := db.DataBase.Exec("UPDATE post SET msg=$1, isedited=true WHERE id=$2;", p.Message, p.Id)
 	if err != nil {
-		beego.Warn(err)
+		log.Println(err)
 	}
 }
 
@@ -68,13 +52,13 @@ func (p *Post) GetMpath(db *database.DB) (res []int) {
 	return res
 }
 
-func (p *Post) GetByID(id int, db *database.DB) bool {
+func PostGetByID(id int, db *database.DB) (p Post, exist bool) {
 	err := db.DataBase.QueryRow("SELECT author,created,forum,id,isedited,msg,parent,thread FROM post WHERE id=$1;", id).
 		Scan(&p.Author, &p.Created, &p.Forum, &p.Id, &p.IsEdited, &p.Message, &p.Parent, &p.Thread)
 	if err != nil {
-		return false
+		return Post{}, false
 	}
-	return true
+	return p, true
 }
 
 func GetPostsByID(ids *map[int]bool, thread int, db *database.DB) (res int) {

@@ -3,8 +3,6 @@ package models
 import (
 	"log"
 	"techpark-db/database"
-
-	"github.com/astaxie/beego"
 )
 
 type Forum struct {
@@ -15,7 +13,7 @@ type Forum struct {
 	User    string `json:"user"`
 }
 
-func (f *Forum) Create(db *database.DB) error {
+func ForumCreate(f Forum, db *database.DB) error {
 	_, err := db.DataBase.Exec("insert into forum(posts,slug,threads,title,forum_user) values ($1,$2,$3,$4,$5);",
 		f.Posts, f.Slug, f.Threads, f.Title, f.User)
 	if err != nil {
@@ -25,19 +23,19 @@ func (f *Forum) Create(db *database.DB) error {
 	return nil
 }
 
-func (f *Forum) Update(db *database.DB) {
+func ForumUpdate(f Forum, db *database.DB) {
 	_, err := db.DataBase.Exec("UPDATE forum SET threads=$1, posts=$2 WHERE slug = $3;", f.Threads, f.Posts, f.Slug)
 	if err != nil {
-		beego.Warn(err)
+		log.Println(err)
 	}
 }
 
-func (f *Forum) GetBySlug(slug string, db *database.DB) (exist bool) {
+func ForumGetBySlug(slug string, db *database.DB) (f Forum, exist bool) {
 	err := db.DataBase.QueryRow("select * from forum where slug = $1;", slug).
 		Scan(&f.Posts, &f.Slug, &f.Threads, &f.Title, &f.User)
 	if err != nil {
-		return false
+		return Forum{}, false
 	}
 
-	return true
+	return f, true
 }

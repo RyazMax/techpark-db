@@ -1,49 +1,27 @@
-# tech-db-forum
 
-Тестовое задание для реализации проекта "Форумы" на курсе по базам данных в Технопарке Mail.ru (https://park.mail.ru).
+## Documentation for API
+Documentation for API is stated in [OpenAPI](https://ru.wikipedia.org/wiki/OpenAPI_%28%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F%29): swagger.yml
 
-Суть задания заключается в реализации API к базе данных проекта «Форумы» по документации к этому API.
+Documantion can be read in : https://tech-db-forum.bozaro.ru/
 
-Таким образом, на входе:
+To run docker use:
 
- * документация к API;
-
-На выходе:
-
- * репозиторий, содержащий все необходимое для разворачивания сервиса в Docker-контейнере.
-
-## Документация к API
-Документация к API предоставлена в виде спецификации [OpenAPI](https://ru.wikipedia.org/wiki/OpenAPI_%28%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F%29): swagger.yml
-
-Документацию можно читать как собственно в файле swagger.yml, так и через Swagger UI (там же есть возможность поиграться с запросами): https://tech-db-forum.bozaro.ru/
-
-## Требования к проекту
-Проект должен включать в себя все необходимое для разворачивания сервиса в Docker-контейнере.
-
-При этом:
-
- * файл для сборки Docker-контейнера должен называться Dockerfile и располагаться в корне репозитория;
- * реализуемое API должно быть доступно на 5000-ом порту по протоколу http;
- * допускается использовать любой язык программирования;
- * крайне не рекомендуется использовать ORM.
-
-Контейнер будет собираться из запускаться командами вида:
 ```
-docker build -t a.navrotskiy https://github.com/bozaro/tech-db-forum-server.git
-docker run -p 5000:5000 --name a.navrotskiy -t a.navrotskiy
+docker build -t forum .
+docker run -p 5000:5000 --name forum -t forum
 ```
 
-## Функциональное тестирование
-Корректность API будет проверяться при помощи автоматического функционального тестирования.
+## Functional testing
+API will be testes by automated functional testing
 
-Методика тестирования:
+Method of testing:
 
- * собирается Docker-контейнер из репозитория;
- * запускается Docker-контейнер;
- * запускается скрипт на Go, который будет проводить тестирование;
- * останавливается Docker-контейнер.
+ * build Docker;
+ * run Docker;
+ * run testing script in Go;
+ * stop Docker.
 
-Скомпилированные программы для тестирования можно скачать по ссылкам:
+Testing programs can be downloaded via:
 
  * [darwin_amd64.zip](https://bozaro.github.io/tech-db-forum/darwin_amd64.zip)
  * [linux_386.zip](https://bozaro.github.io/tech-db-forum/linux_386.zip)
@@ -51,26 +29,26 @@ docker run -p 5000:5000 --name a.navrotskiy -t a.navrotskiy
  * [windows_386.zip](https://bozaro.github.io/tech-db-forum/windows_386.zip)
  * [windows_amd64.zip](https://bozaro.github.io/tech-db-forum/windows_amd64.zip)
 
-Для локальной сборки Go-скрипта достаточно выполнить команду:
+For local usage of Go testing script use:
 ```
 go get -u -v github.com/bozaro/tech-db-forum
 go build github.com/bozaro/tech-db-forum
 ```
-После этого в текущем каталоге будет создан исполняемый файл `tech-db-forum`.
+After that `tech-db-forum` will be created.
 
-### Запуск функционального тестирования
+### Run functional testing
 
-Для запуска функционального тестирования нужно выполнить команду вида:
+To run functional testing use:
 ```
 ./tech-db-forum func -u http://localhost:5000/api -r report.html
 ```
 
-Поддерживаются следующие параметры:
+Possible parammetres:
 
-Параметр                              | Описание
+Parammetr                              | Description
 ---                                   | ---
--h, --help                            | Вывод списка поддерживаемых параметров
--u, --url[=http://localhost:5000/api] | Указание базовой URL тестируемого приложения
--k, --keep                            | Продолжить тестирование после первого упавшего теста
--t, --tests[=.*]                      | Маска запускаемых тестов (регулярное выражение)
--r, --report[=report.html]            | Имя файла для детального отчета о функциональном тестировании
+-h, --help                            | Print possible parammetres
+-u, --url[=http://localhost:5000/api] | set base URL of tested application
+-k, --keep                            | Keep testing after first failed test
+-t, --tests[=.*]                      | Mask of running tests (regular expression)
+-r, --report[=report.html]            | Report file name
